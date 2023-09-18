@@ -1,0 +1,96 @@
+/**
+ * Styles for Sample
+ *
+ * @author Takuto Yanagida
+ * @version 2023-09-19
+ */
+
+@use "sass:math";
+
+// * { outline: 1px solid rgba(red, 0.5); }
+// *::before, *::after { outline: 1px solid rgba(green, 0.5); }
+
+:root {
+	font-size  : 16px;
+	font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+body {
+	min-height   : 200vh;
+	padding-block: 4vh;
+	overflow-x   : hidden;
+
+	background-color: #fff;
+}
+
+h1 small {
+	font-size: small;
+}
+
+h2 {
+	margin-block-start: 6rem;
+}
+
+h3 {
+	margin-block-start: 2rem;
+}
+
+pre {
+	margin: 0;
+	overflow-x: auto;
+}
+
+dt {
+	font-weight: bold;
+
+	dd + & {
+		margin-block-start: 0.5rem;
+	}
+}
+
+.content {
+	margin-inline: auto;
+	max-width    : 48rem;
+	width        : calc(100% - 2vw);
+
+	color: hsla(0, 0%, 0%, 0.75);
+}
+
+
+// -----------------------------------------------------------------------------
+
+
+.frame-global,
+.frame-priority {
+	margin-block-start: 2rem;
+
+	.current > * {
+		background-color: #edf;
+	}
+
+	.hover:not(.hover-ancestor) > *:first-child:is(a, button, label) {
+		background-color: #eee;
+	}
+
+	.menu .menu {
+		padding-inline-start: 1rem;
+	}
+
+	.description {
+		font-size: small;
+	}
+
+	&.flex-wrap-wrap {
+		display  : flex;
+		flex-wrap: wrap;
+
+		> div {
+			flex-grow: 1;
+			width: min(calc(100vw - 2rem), 32rem);
+		}
+	}
+
+	&.fixed-width-element {
+		display: flex;
+	}
+}

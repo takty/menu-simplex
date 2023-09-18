@@ -1,0 +1,46 @@
+{
+	"name": "menu-simplex",
+	"version": "1.0.0",
+	"description": "Flexible Menu Component",
+	"author": "Takuto Yanagida",
+	"main": "gulpfile.js",
+	"scripts": {
+		"postinstall": "gulp build",
+		"start": "gulp",
+		"docs": "gulp doc"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/takty/menu-simplex.git"
+	},
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/takty/menu-simplex/issues"
+	},
+	"homepage": "https://github.com/takty/menu-simplex#readme",
+	"browserslist": [
+		"> 1%",
+		"last 2 versions",
+		"not ie 11",
+		"not dead"
+	],
+	"dependencies": {
+		"@babel/core": "^7.22.20",
+		"@babel/preset-env": "^7.22.20",
+		"gulp": "^4.0.2",
+		"gulp-autoprefixer": "^8.0.0",
+		"gulp-babel": "^8.0.0",
+		"gulp-changed": "^4.0.3",
+		"gulp-plumber": "^1.2.1",
+		"gulp-preprocess": "^4.0.2",
+		"gulp-rename": "^2.0.0",
+		"gulp-sass": "^5.1.0",
+		"gulp-terser": "^2.1.0",
+		"sass": "^1.67.0"
+	},
+	"devDependencies": {
+		"gulp-ignore": "^3.0.0",
+		"gulp-replace": "^1.1.4",
+		"luxon": "^3.4.3"
+	}
+}

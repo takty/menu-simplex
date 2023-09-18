@@ -1,0 +1,265 @@
+/**
+ * Menu Simplex
+ *
+ * @author Takuto Yanagida
+ * @version 2023-09-19
+ */
+
+@use 'mixin';
+
+.menu-simplex {
+	--bar-item-width  : unset;
+	--bar-item-height : 3rem;
+	--bar-item-padding: 0.25rem 1rem;
+
+	--bar-mark-color: #000;
+	--bar-mark-path :  polygon(0% 20%, 100% 20%, 50% 95%);
+
+	--popup-offset      : 0.25rem;
+	--popup-bg-color    : #fff;
+	--popup-shadow      : 0 4px 8px 0 #0004;
+
+	--popup-item-width  : unset;
+	--popup-item-height : 3rem;
+	--popup-item-padding: 0.25rem 1rem;
+}
+
+
+// -----------------------------------------------------------------------------
+
+
+.menu-simplex {
+	position  : relative;
+	box-sizing: border-box;
+
+	max-width: var(--max-width, unset);
+
+	:where(*, *::before, *::after) {
+		box-sizing: inherit;
+		margin    : 0;
+		padding   : 0;
+	}
+
+	:where(li, li > *:first-child) {
+		transition-duration: 0.2s;
+		transition-property: color, background-color;
+
+		&::before,
+		&::after {
+			transition: all 0.2s;
+		}
+	}
+
+	:where(li > *) {
+		user-select: none;
+	}
+
+	a {
+		text-decoration: none;
+	}
+
+	.current > a {
+		pointer-events: none;
+	}
+
+	button {
+		appearance   : none;
+		padding      : 0;
+		border-radius: 0;
+		border       : inherit;
+		background   : inherit;
+		font         : inherit;
+		color        : inherit;
+	}
+
+	ul {
+		list-style-type: none;
+	}
+
+
+	// -------------------------------------------------------------------------
+
+
+	overflow-y: visible;
+	overflow-x: hidden;
+	opacity   : 0;
+
+	&.ready {
+		transition: opacity 0.1s;
+		overflow-x: visible;
+		opacity   : 1;
+	}
+}
+
+
+// -----------------------------------------------------------------------------
+
+
+.menu-simplex {
+	> ul {  // Bar
+		max-height: var(--bar-item-height);
+
+		display  : inline-flex;
+		flex-wrap: nowrap;
+
+		> li {  // Bar item
+			flex-grow: 1;
+
+			> *:first-child {
+				display        : flex;
+				align-items    : center;
+				justify-content: center;
+
+				width     : 100%;
+				min-width : var(--bar-item-width);
+				min-height: var(--bar-item-height);
+				padding   : var(--bar-item-padding);
+
+				white-space: nowrap;
+			}
+
+			position: relative;
+		}
+	}
+}
+
+.menu-simplex.with-popup-hint {
+	ul > li {
+		> button:first-child {
+			padding-inline-end: 2rem;
+
+			position: relative;
+			&::after {
+				content : '';
+				position: absolute;
+				width   : 0.5rem;
+				height  : 0.5rem;
+
+				inset    : 50% 0.75rem auto auto;
+				translate: 0 -0.25rem;
+
+				clip-path : var(--bar-mark-path);
+				box-shadow: 0 0 1rem var(--bar-mark-color) inset;
+			}
+		}
+
+		&.opened {
+			> button:first-child::after {
+				transform: scaleY(-1);
+			}
+		}
+	}
+
+	> ul > li.hamburger > button:first-child {
+		padding-inline: 1.5rem;
+		&::after {
+			inset-inline-end: 1.25rem;
+		}
+	}
+}
+
+
+// -----------------------------------------------------------------------------
+
+
+.menu-simplex > ul > li > *:first-child + * {  // Popup
+	opacity   : 0;
+	transition: opacity 0.15s 0.05s;
+	&:not(.active) {
+		display: none;
+	}
+	&:where(.opened) {
+		opacity   : 1;
+		transition: opacity 0.2s;
+	}
+}
+
+.menu-simplex > ul > li > *:first-child + * {  // Popup
+	position        : absolute;
+	inset-inline-end: 0;
+	z-index         : 1000;
+
+	&.end   { inset-inline-end  : 0; }
+	&.start { inset-inline-start: 0; }
+
+	background-color: var(--popup-bg-color);
+	box-shadow      : var(--popup-shadow);
+
+	display        : flex;
+	justify-content: center;
+	flex-direction : column;
+
+	width: max-content;
+	max-width: 24rem;
+
+	li {  // Popup item
+		> *:first-child {
+			display        : flex;
+			align-items    : center;
+			justify-content: flex-start;
+
+			width     : 100%;
+			min-width : var(--popup-item-width);
+			min-height: var(--popup-item-height);
+			padding   : var(--popup-item-padding);
+
+			:where(div, span) {
+				display   : inline-block;
+				text-align: left;
+			}
+		}
+
+		&:where(.current) {
+			> a {
+				pointer-events: none;
+			}
+		}
+
+		ul {
+			margin-inline-start: 1rem;
+		}
+	}
+}
+.menu-simplex.with-popup-hint > ul > li > *:first-child + * {  // Popup
+	li {
+		> button:first-child {
+			padding-inline-end: 2rem;
+
+			position: relative;
+			&::after {
+				content : '';
+				position: absolute;
+				width   : 0.5rem;
+				height  : 0.5rem;
+
+				inset    : 50% 0.75rem auto auto;
+				translate: 0 -0.25rem;
+
+				clip-path : var(--bar-mark-path);
+				box-shadow: 0 0 1rem var(--bar-mark-color) inset;
+			}
+		}
+
+		&.opened {
+			> button:first-child::after {
+				transform: scaleY(-1);
+			}
+		}
+	}
+}
+
+.menu-simplex > ul > li.hamburger > *:first-child + * {  // Hamburger
+	> li {
+		> *:first-child + * {
+			opacity   : 0;
+			transition: opacity 0.15s 0.05s;
+			&:not(.active) {
+				display: none;
+			}
+			&:where(.opened) {
+				opacity   : 1;
+				transition: opacity 0.2s;
+			}
+		}
+	}
+}
