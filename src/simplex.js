@@ -2,7 +2,7 @@
  * Menu Simplex (Progressively collapsing menu)
  *
  * @author Takuto Yanagida
- * @version 2023-09-19
+ * @version 2023-09-20
  */
 
 window['menu_simplex'] = window['menu_simplex'] ?? {};
@@ -17,12 +17,13 @@ window['menu_simplex'] = function (id = null, opts = {}) {
 	const CLS_ACTIVE = 'active';
 	const CLS_OPENED = 'opened';
 
-	const CP_MAX_WIDTH = '--max-width';
-	const CP_FOLDABLE  = '--foldable';
+	const CP_MAX_WIDTH   = '--max-width';
+	const CP_IS_FOLDABLE = '--is-foldable';
+	const CP_IS_BG_FIXED = '--is-background-fixed';
 
 	const root = id ? document.getElementById(id) : document.getElementsByClassName(NS)[0];
 	if (!root) return;
-	const ulBar = root.querySelector('.menu') ?? root.getElementsByTagName('ul')[0];
+	const ulBar = root.getElementsByTagName('ul')[0];
 	if (!ulBar) return;
 
 	const autoClose = opts['autoClose']      ?? true;
@@ -53,24 +54,20 @@ window['menu_simplex'] = function (id = null, opts = {}) {
 	}
 	addHoverStateEventListener(lis, CLS_CURRENT, CLS_HOVER);
 
-	let stopResize = false;
+	let skipResize = false;
 
 	let ws = [];
 	setTimeout(() => {
 		ws = lis.map(e => e.offsetWidth);
 		const rob = new ResizeObserver(() => {
 			requestAnimationFrame(() => {
-				console.log('> resize');
-				if (stopResize) {
-					stopResize = false;
+				if (skipResize) {
+					skipResize = false;
 					return;
 				}
-				const d = setMaxWidth(root);
-				// if (!curBtns.length || -1 === d) {  // For when window width changes by background fixing.
-				if (!stopResize) {  // For when window width changes by background fixing.
-					closeAll(buttons);
-					alignItems(ws, ulBar, ulFolder, lis, fIdx, order);
-				}
+				setMaxWidth(root);
+				closeAll(buttons);
+				alignItems(ws, ulBar, ulFolder, lis, fIdx, order);
 			});
 		});
 		rob.observe(root);
@@ -169,6 +166,7 @@ window['menu_simplex'] = function (id = null, opts = {}) {
 		window.addEventListener('keydown', e => {
 			if (e.key === 'Escape') {
 				if (curBtns.length) {
+					curBtns[curBtns.length - 1].focus();
 					curBtns[curBtns.length - 1].click();
 				}
 			}
@@ -185,7 +183,6 @@ window['menu_simplex'] = function (id = null, opts = {}) {
 
 
 	function open(btn) {
-		console.log('> open');
 		const li    = btn.parentElement;
 		const popup = btn.nextElementSibling;
 		if (!popup) return;
@@ -199,16 +196,14 @@ window['menu_simplex'] = function (id = null, opts = {}) {
 			popup.classList.add(CLS_OPENED);
 		}, 0);
 		curBtns.push(btn);
-		// console.log('open');
-		// console.log(curBtns);
 
-		stopResize = true;
-		fixBackground(true);
-		// stopResize = false;
+		if (true === getStylePropertyBool(root, CP_IS_BG_FIXED)) {
+			skipResize = true;
+			fixBackground(true);
+		}
 	}
 
 	function close(btn) {
-		console.log('> close');
 		const li    = btn.parentElement;
 		const popup = btn.nextElementSibling;
 		if (!popup) return;
@@ -222,27 +217,25 @@ window['menu_simplex'] = function (id = null, opts = {}) {
 			popup.classList.remove(CLS_ACTIVE);
 		}, 200);
 		curBtns.pop();
-		// console.log('close');
-		// console.log(curBtns);
-		stopResize = true;
-		fixBackground(false);
-		// stopResize = false;
+
+		if (getStylePropertyBool(root, CP_IS_BG_FIXED)) {
+			skipResize = true;
+			fixBackground(false);
+		}
 	}
 
 	function closeAll(buttons, opening = null) {
-		console.log('> closeAll');
-		// console.trace();
 		for (const btn of buttons) {
 			if (opening !== btn) {
 				close(btn);
 			}
 		}
 		curBtns.length = 0;
-		// console.log('closeAll');
-		// console.log(curBtns);
-		stopResize = true;
-		fixBackground(false);
-		// stopResize = false;
+
+		if (getStylePropertyBool(root, CP_IS_BG_FIXED)) {
+			skipResize = true;
+			fixBackground(false);
+		}
 	}
 
 	function doOnScroll(ulBar, buttons, scrollTop) {
@@ -256,13 +249,10 @@ window['menu_simplex'] = function (id = null, opts = {}) {
 	}
 
 	function setMaxWidth(root) {
-		const pref = parseFloat(root.style.getPropertyValue(CP_MAX_WIDTH));
-
 		const p  = root.parentElement;
 		const cs = getComputedStyle(p);
 		const w  = p.clientWidth - (parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight));
 		root.style.setProperty(CP_MAX_WIDTH, `${Math.floor(w)}px`);
-		return (isNaN(pref) || pref === w) ? 0 : (pref < w ? 1 : -1);
 	}
 
 	function alignItems(ws, ulBar, ulFolder, lis, fIdx, order) {
@@ -275,7 +265,7 @@ window['menu_simplex'] = function (id = null, opts = {}) {
 
 		const inBar = calcItemPlace(barW, ws, order, colGap, fIdx);
 
-		if ('false' === getComputedStyle(ulBar).getPropertyValue(CP_FOLDABLE).trim()) {
+		if (false === getStylePropertyBool(root, CP_IS_FOLDABLE)) {
 			inBar.fill(true);
 			inBar[fIdx] = false;
 		}
@@ -288,17 +278,9 @@ window['menu_simplex'] = function (id = null, opts = {}) {
 				if (li.parentElement === ulBar) {
 					ws[i] = li.offsetWidth;
 				}
-				// if (li.parentElement !== ulBar) {
-				// 	const bs = li.querySelectorAll('button');
-				// 	for (const b of bs) b.classList.remove('opened');
-				// }
 				ulBar.insertBefore(li, prevElm.nextElementSibling);
 				prevElm = li;
 			} else if(i !== fIdx) {
-				// if (li.parentElement !== ulFolder) {
-				// 	const bs = li.querySelectorAll('button');
-				// 	for (const b of bs) b.classList.remove('opened');
-				// }
 				ulFolder.appendChild(li);
 			}
 		}

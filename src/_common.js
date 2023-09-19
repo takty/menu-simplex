@@ -2,7 +2,7 @@
  * Common Functions
  *
  * @author Takuto Yanagida
- * @version 2023-09-16
+ * @version 2023-09-20
  */
 
 const scrollListeners = [];
@@ -94,5 +94,19 @@ function fixBackground(enabled) {
 	}
 	if (!enabled) {
 		window.scrollTo(0, -sy);
+	}
+}
+
+function getStylePropertyBool(elm, prop) {
+	const val = getComputedStyle(elm).getPropertyValue(prop).trim();
+	return !val.length ? null : str2bool(val);
+}
+
+function str2bool(str){
+	if (typeof str !== 'string') return Boolean(str);
+	try {
+		return JSON.parse(str.toLowerCase()) == true;
+	} catch(e) {
+		return str.length !== 0;
 	}
 }
