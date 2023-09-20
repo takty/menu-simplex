@@ -35,11 +35,13 @@ function throttle(fn) {
 
 function addHoverStateEventListener(items, clsCurrent, clsHover, root = null, clsHoverAncestor = null) {
 	const enter = (e) => {
-		if (e.pointerType === 'mouse' && !e.target.classList.contains(clsCurrent)) {
-			e.target.classList.add(clsHover);
+		const li = e.target.parentElement;
+
+		if (e.pointerType === 'mouse' && !li.classList.contains(clsCurrent)) {
+			li.classList.add(clsHover);
 			if (clsHoverAncestor) {
-				for (let elm = e.target.parentElement; elm && elm !== root; elm = elm.parentElement) {
-					if (elm.classList.contains(clsHover)) {
+				for (let elm = li.parentElement; elm && elm !== root; elm = elm.parentElement) {
+					if (elm.tagName === 'LI') {
 						elm.classList.add(clsHoverAncestor);
 					}
 				}
@@ -47,11 +49,13 @@ function addHoverStateEventListener(items, clsCurrent, clsHover, root = null, cl
 		}
 	}
 	const leave = (e) => {
-		if (e.pointerType === 'mouse' && !e.target.classList.contains(clsCurrent)) {
-			e.target.classList.remove(clsHover);
+		const li = e.target.parentElement;
+
+		if (e.pointerType === 'mouse' && !li.classList.contains(clsCurrent)) {
+			li.classList.remove(clsHover);
 			if (clsHoverAncestor) {
-				for (let elm = e.target.parentElement; elm && elm !== root; elm = elm.parentElement) {
-					if (elm.classList.contains(clsHover)) {
+				for (let elm = li.parentElement; elm && elm !== root; elm = elm.parentElement) {
+					if (elm.tagName === 'LI') {
 						elm.classList.remove(clsHoverAncestor);
 					}
 				}
@@ -59,8 +63,8 @@ function addHoverStateEventListener(items, clsCurrent, clsHover, root = null, cl
 		}
 	}
 	for (const it of items) {
-		it.addEventListener('pointerenter', enter);
-		it.addEventListener('pointerleave', leave);
+		it.firstElementChild.addEventListener('pointerenter', enter);
+		it.firstElementChild.addEventListener('pointerleave', leave);
 	}
 }
 

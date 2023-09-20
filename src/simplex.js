@@ -12,10 +12,11 @@ window['menu_simplex'] = function (id = null, opts = {}) {
 
 	const CLS_CURRENT = 'current';
 
-	const CLS_READY  = 'ready';
-	const CLS_HOVER  = 'hover';
-	const CLS_ACTIVE = 'active';
-	const CLS_OPENED = 'opened';
+	const CLS_READY          = 'ready';
+	const CLS_HOVER          = 'hover';
+	const CLS_HOVER_ANCESTOR = 'hover-ancestor';
+	const CLS_ACTIVE         = 'active';
+	const CLS_OPENED         = 'opened';
 
 	const CP_MAX_WIDTH   = '--max-width';
 	const CP_IS_FOLDABLE = '--is-foldable';
@@ -44,21 +45,22 @@ window['menu_simplex'] = function (id = null, opts = {}) {
 
 
 	const ulFolder = initFolder(ulBar, btnPos);
-	const lis      = Array.from(ulBar.querySelectorAll(':scope > li'));
-	const fIdx     = lis.findIndex(e => e.classList.contains('hamburger'));
-	const buttons  = initPopup(ulBar, lis, autoClose);
-	const order    = initOrder(lis, reversed);
+	const barLis   = Array.from(ulBar.querySelectorAll(':scope > li'));
+	const allLis   = Array.from(ulBar.querySelectorAll(':scope li'));
+	const fIdx     = barLis.findIndex(e => e.classList.contains('hamburger'));
+	const buttons  = initPopup(ulBar, barLis, autoClose);
+	const order    = initOrder(barLis, reversed);
 
-	for (const li of lis) {
+	for (const li of barLis) {
 		li.addEventListener('click', () => closeAll(buttons));
 	}
-	addHoverStateEventListener(lis, CLS_CURRENT, CLS_HOVER);
+	addHoverStateEventListener(allLis, CLS_CURRENT, CLS_HOVER, root, CLS_HOVER_ANCESTOR);
 
 	let skipResize = false;
 
 	let ws = [];
 	setTimeout(() => {
-		ws = lis.map(e => e.offsetWidth);
+		ws = barLis.map(e => e.offsetWidth);
 		const rob = new ResizeObserver(() => {
 			requestAnimationFrame(() => {
 				if (skipResize) {
@@ -67,7 +69,7 @@ window['menu_simplex'] = function (id = null, opts = {}) {
 				}
 				setMaxWidth(root);
 				closeAll(buttons);
-				alignItems(ws, ulBar, ulFolder, lis, fIdx, order);
+				alignItems(ws, ulBar, ulFolder, barLis, fIdx, order);
 			});
 		});
 		rob.observe(root);
@@ -256,10 +258,7 @@ window['menu_simplex'] = function (id = null, opts = {}) {
 	}
 
 	function alignItems(ws, ulBar, ulFolder, lis, fIdx, order) {
-		ulBar.style.width = '0';
-		const barW = Math.floor(ulBar.parentElement.getBoundingClientRect().width);
-		ulBar.style.width = null;
-
+		const barW = calcBarWidth(ulBar);
 		let colGap = parseInt(getComputedStyle(ulBar).columnGap, 10);
 		colGap = Number.isNaN(colGap) ? 0 : colGap;
 
@@ -284,6 +283,21 @@ window['menu_simplex'] = function (id = null, opts = {}) {
 				ulFolder.appendChild(li);
 			}
 		}
+	}
+
+	function calcBarWidth(ulBar) {
+		ulBar.style.width = '0';
+		let barW = Math.floor(root.getBoundingClientRect().width);
+		if (barW === 0 && root.parentElement) {
+			const rps = getComputedStyle(root.parentElement);
+			if (rps.display.endsWith('flex')) {
+				root.style.flexGrow = 1;
+				barW = Math.floor(root.getBoundingClientRect().width);
+				root.style.flexGrow = null;
+			}
+		}
+		ulBar.style.width = null;
+		return barW;
 	}
 
 	function calcItemPlace(ulBarW, ws, order, colGap, fIdx) {
