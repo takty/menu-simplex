@@ -2,7 +2,7 @@
  * Menu Simplex (Progressively collapsing menu)
  *
  * @author Takuto Yanagida
- * @version 2023-09-20
+ * @version 2023-09-21
  */
 
 window['menu_simplex'] = window['menu_simplex'] ?? {};
@@ -184,6 +184,15 @@ window['menu_simplex'] = function (id = null, opts = {}) {
 	// -------------------------------------------------------------------------
 
 
+	const focusTrap = document.createElement('li');
+	focusTrap.className = 'focus-trap';
+	focusTrap.tabIndex = 0;
+	focusTrap.addEventListener('focus', () => {
+		if (curBtns.length) {
+			curBtns[0].focus();
+		}
+	});
+
 	function open(btn) {
 		const li    = btn.parentElement;
 		const popup = btn.nextElementSibling;
@@ -198,6 +207,13 @@ window['menu_simplex'] = function (id = null, opts = {}) {
 			popup.classList.add(CLS_OPENED);
 		}, 0);
 		curBtns.push(btn);
+
+		if (1 === curBtns.length) {
+			const ul = ('UL' === popup.tagName) ? popup : popup.getElementsByClassName('UL')?.[0];
+			if (ul) {
+				ul.appendChild(focusTrap);
+			}
+		}
 
 		if (true === getStylePropertyBool(root, CP_IS_BG_FIXED)) {
 			skipResize = true;
@@ -219,6 +235,13 @@ window['menu_simplex'] = function (id = null, opts = {}) {
 			popup.classList.remove(CLS_ACTIVE);
 		}, 200);
 		curBtns.pop();
+
+		if (0 === curBtns.length) {
+			const ul = ('UL' === popup.tagName) ? popup : popup.getElementsByClassName('UL')?.[0];
+			if (ul && focusTrap.parentElement === ul) {
+				ul.removeChild(focusTrap);
+			}
+		}
 
 		if (getStylePropertyBool(root, CP_IS_BG_FIXED)) {
 			skipResize = true;
