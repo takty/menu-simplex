@@ -5,8 +5,6 @@
  * @version 2023-09-21
  */
 
-window['menu_simplex'] = window['menu_simplex'] ?? {};
-
 window['menu_simplex'] = function (id = null, opts = {}) {
 	const NS = 'menu-simplex';
 
