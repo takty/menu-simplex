@@ -2,7 +2,7 @@
  * Menu Simplex
  *
  * @author Takuto Yanagida
- * @version 2023-09-19
+ * @version 2023-09-20
  */
 
 @use 'mixin';
@@ -74,6 +74,11 @@
 
 	ul {
 		list-style-type: none;
+	}
+
+	:focus-visible {
+		position: relative;
+		z-index : 1;
 	}
 
 
