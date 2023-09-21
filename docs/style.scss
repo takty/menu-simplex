@@ -2,7 +2,7 @@
  * Styles for Sample
  *
  * @author Takuto Yanagida
- * @version 2023-09-19
+ * @version 2023-09-20
  */
 
 @use "sass:math";
@@ -60,24 +60,19 @@ dt {
 // -----------------------------------------------------------------------------
 
 
-.frame-global,
-.frame-priority {
+.frame-simplex {
 	margin-block-start: 2rem;
 
-	.current > * {
+	.current > *:first-child {
 		background-color: #edf;
 	}
 
-	.hover:not(.hover-ancestor) > *:first-child:is(a, button, label) {
+	.hover > *:first-child {
 		background-color: #eee;
 	}
 
-	.menu .menu {
-		padding-inline-start: 1rem;
-	}
-
-	.description {
-		font-size: small;
+	.hover-ancestor > *:first-child {
+		background-color: #eee8;
 	}
 
 	&.flex-wrap-wrap {
