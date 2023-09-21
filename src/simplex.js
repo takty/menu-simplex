@@ -205,6 +205,8 @@ window['menu_simplex'] = function (id = null, opts = {}) {
 			popup.classList.add(CLS_OPENED);
 		}, 0);
 		curBtns.push(btn);
+		popup.style.transform = null;
+		adjustPopupInline(curBtns[0].nextElementSibling);
 
 		if (1 === curBtns.length) {
 			const ul = ('UL' === popup.tagName) ? popup : popup.getElementsByClassName('UL')?.[0];
@@ -216,6 +218,23 @@ window['menu_simplex'] = function (id = null, opts = {}) {
 		if (true === getStylePropertyBool(root, CP_IS_BG_FIXED)) {
 			skipResize = true;
 			fixBackground(true);
+		}
+	}
+
+	function adjustPopupInline(popup) {
+		popup.style.transform = null;
+		popup.style.maxWidth = null;
+		let pr = popup.getBoundingClientRect();
+		const rr = root.getBoundingClientRect();
+		if (rr.width < pr.width) {
+			popup.style.maxWidth = `${rr.width}px`;
+			pr = popup.getBoundingClientRect();
+		}
+		if (rr.right < pr.right) {
+			popup.style.transform = `translateX(${rr.right - pr.right}px)`;
+		}
+		if (pr.left < rr.left) {
+			popup.style.transform = `translateX(${pr.left - rr.left}px)`;
 		}
 	}
 
@@ -231,6 +250,7 @@ window['menu_simplex'] = function (id = null, opts = {}) {
 		popup.classList.remove(CLS_OPENED);
 		setTimeout(() => {
 			popup.classList.remove(CLS_ACTIVE);
+			if (curBtns.length) adjustPopupInline(curBtns[0].nextElementSibling);
 		}, 200);
 		curBtns.pop();
 
@@ -262,7 +282,10 @@ window['menu_simplex'] = function (id = null, opts = {}) {
 	}
 
 	function doOnScroll(ulBar, buttons, scrollTop) {
-		const bcr = ulBar.getBoundingClientRect();
+		if (!curBtns.length || !curBtns[0].nextElementSibling) {
+			return;
+		}
+		const bcr = curBtns[0].nextElementSibling.getBoundingClientRect();
 		if (
 			bcr.bottom < 0 ||  // When not fixed
 			(0 < bcr.top && bcr.bottom < Math.abs(window.scrollY - scrollTop))  // When fixed

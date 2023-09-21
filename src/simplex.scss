@@ -180,9 +180,10 @@
 }
 
 .menu-simplex > ul > li > *:first-child + * {  // Popup
-	position        : absolute;
-	inset-inline-end: 0;
-	z-index         : 1000;
+	position          : absolute;
+	inset-inline-start: 0;
+	inset-block-start : calc(100% + 2px);
+	z-index           : 1000;
 
 	&.end   { inset-inline-end  : 0; }
 	&.start { inset-inline-start: 0; }
