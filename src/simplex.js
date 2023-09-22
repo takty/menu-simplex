@@ -2,142 +2,229 @@
  * Menu Simplex (Progressively collapsing menu)
  *
  * @author Takuto Yanagida
- * @version 2023-09-21
+ * @version 2023-09-23
  */
 
-window['menu_simplex'] = function (id = null, opts = {}) {
-	const NS = 'menu-simplex';
+window['menu_simplex'] = function (id = null) {
+	new MenuSimplex(id);
+};
 
-	const CLS_CURRENT = 'current';
+class MenuSimplex {
 
-	const CLS_READY          = 'ready';
-	const CLS_HOVER          = 'hover';
-	const CLS_HOVER_ANCESTOR = 'hover-ancestor';
-	const CLS_ACTIVE         = 'active';
-	const CLS_OPENED         = 'opened';
+	static NS = 'menu-simplex';
 
-	const CP_MAX_WIDTH   = '--max-width';
-	const CP_IS_FOLDABLE = '--is-foldable';
-	const CP_IS_BG_FIXED = '--is-background-fixed';
+	static CP_IS_FOLDABLE    = '--is-foldable';
+	static CP_IS_CLOSED_AUTO = '--is-closed-auto';
+	static CP_IS_BG_FIXED    = '--is-background-fixed';
+	static CP_IS_REVERSED    = '--is-reversed';
+	static CP_FOLDER_POS     = '--folder-position';
 
-	const root = id ? document.getElementById(id) : document.getElementsByClassName(NS)[0];
-	if (!root) return;
-	const ulBar = root.getElementsByTagName('ul')[0];
-	if (!ulBar) return;
+	static CLS_FOLDER  = 'folder';
+	static CLS_CURRENT = 'current';
 
-	const autoClose = opts['autoClose']      ?? true;
-	const reversed  = opts['reversed']       ?? false;
-	const btnPos    = opts['buttonPosition'] ?? 'end';  // 'start' or 'end';
+	static CLS_READY          = 'ready';
+	static CLS_HOVER          = 'hover';
+	static CLS_HOVER_ANCESTOR = 'hover-ancestor';
+	static CLS_ACTIVE         = 'active';
+	static CLS_OPENED         = 'opened';
 
-	let scrollY = 0;
-	let curBtns = [];
+	static CP_MAX_WIDTH = '--max-width';
 
 
 	// -------------------------------------------------------------------------
 
 
-	// @include _common.js
-
-
-	// -------------------------------------------------------------------------
-
-
-	const ulFolder = initFolder(ulBar, btnPos);
-	const barLis   = Array.from(ulBar.querySelectorAll(':scope > li'));
-	const allLis   = Array.from(ulBar.querySelectorAll(':scope li'));
-	const fIdx     = barLis.findIndex(e => e.classList.contains('hamburger'));
-	const buttons  = initPopup(ulBar, barLis, autoClose);
-	const order    = initOrder(barLis, reversed);
-
-	for (const li of barLis) {
-		li.addEventListener('click', () => closeAll(buttons));
+	static throttle(fn) {
+		let isRunning;
+		function run() {
+			isRunning = false;
+			fn();
+		}
+		return () => {
+			if (isRunning) return;
+			isRunning = true;
+			requestAnimationFrame(run);
+		};
 	}
-	addHoverStateEventListener(allLis, CLS_CURRENT, CLS_HOVER, root, CLS_HOVER_ANCESTOR);
 
-	let skipResize = false;
+	static addHoverStateEventListener(root, items) {
+		const enter = e => {
+			const li = e.target.parentElement;
 
-	let ws = [];
-	setTimeout(() => {
-		ws = barLis.map(e => e.offsetWidth);
-		const rob = new ResizeObserver(() => {
-			requestAnimationFrame(() => {
-				if (skipResize) {
-					skipResize = false;
-					return;
+			if (e.pointerType === 'mouse' && !li.classList.contains(MenuSimplex.CLS_CURRENT)) {
+				li.classList.add(MenuSimplex.CLS_HOVER);
+				for (let elm = li.parentElement; elm && elm !== root; elm = elm.parentElement) {
+					if (elm.tagName === 'LI') {
+						elm.classList.add(MenuSimplex.CLS_HOVER_ANCESTOR);
+					}
 				}
-				setMaxWidth(root);
-				closeAll(buttons);
-				alignItems(ws, ulBar, ulFolder, barLis, fIdx, order);
-			});
-		});
-		rob.observe(root);
-		rob.observe(root.parentElement);
-	}, 10);
-	setTimeout(() => root.classList.add(CLS_READY), 100);
-
-
-	// -------------------------------------------------------------------------
-
-
-	function initOrder(lis, reversed) {
-		const ws = new Array(lis.length);
-		for (let i = 0; i < lis.length; i += 1) {
-			ws[i] = getWeightFromClass(lis[i], lis.length - i);
-		}
-		const order = new Array(lis.length);
-		for (let i = 0; i < lis.length; i += 1) order[i] = i;
-		order.sort((a, b) => ws[a] < ws[b] ? 1 : ws[a] > ws[b] ? -1 : 0);
-
-		if (reversed) {
-			order.reverse();
-		}
-		return order;
-	}
-
-	function getWeightFromClass(li, def) {
-		const cs = li.className.split(' ');
-		let w = null;
-		for (const c of cs) {
-			const n = parseInt(c, 10);
-			if (isNaN(n)) continue;
-			if (null === w || w < n) w = n;
-		}
-		return w ?? def;
-	}
-
-	function initFolder(ulBar, btnPos) {
-		let li = ulBar.querySelector('li.hamburger');
-		if (!li) {
-			li = document.createElement('li');
-			li.classList.add('hamburger');
-
-			if ('end' === btnPos) {
-				ulBar.append(li);
-			} else if ('start' === btnPos) {
-				ulBar.prepend(li);
 			}
 		}
-		let btn = li.querySelector('button:first-of-type');
+		const leave = e => {
+			const li = e.target.parentElement;
+
+			if (e.pointerType === 'mouse' && !li.classList.contains(MenuSimplex.CLS_CURRENT)) {
+				li.classList.remove(MenuSimplex.CLS_HOVER);
+				for (let elm = li.parentElement; elm && elm !== root; elm = elm.parentElement) {
+					if (elm.tagName === 'LI') {
+						elm.classList.remove(MenuSimplex.CLS_HOVER_ANCESTOR);
+					}
+				}
+			}
+		}
+		for (const it of items) {
+			it.firstElementChild.addEventListener('pointerenter', enter);
+			it.firstElementChild.addEventListener('pointerleave', leave);
+		}
+	}
+
+	static fixed;
+
+	static fixBackground(enabled) {
+		if (MenuSimplex.fixed === enabled) return;
+		MenuSimplex.fixed = enabled;
+
+		const scrollingElement = () => {
+			return ('scrollingElement' in document) ? document.scrollingElement : document.documentElement;
+		};
+		const sy = enabled ? scrollingElement().scrollTop : parseInt(document.body.style.top ?? '0');
+		const cs = getComputedStyle(document.body);
+		const mw = parseFloat(cs.marginInlineStart) + parseFloat(cs.marginInlineEnd);
+		const ss = {
+			position: 'fixed',
+			top     : `${-sy}px`,
+			left    : '0',
+			width   : `calc(100vw - ${mw}px)`,
+			height  : '100dvh',
+
+			'overflow-y': 'scroll',  // For keeping scroll bar width.
+		};
+		for (const [key, value] of Object.entries(ss)) {
+			document.body.style[key] = enabled ? value : null;
+		}
+		if (!enabled) {
+			window.scrollTo(0, -sy);
+		}
+	}
+
+	static getStylePropertyBool(elm, prop) {
+		const v = getComputedStyle(elm).getPropertyValue(prop).trim();
+		if (!v.length) return null;
+		if (typeof v !== 'string') return Boolean(v);
+		try {
+			return 'true' == JSON.parse(v.toLowerCase());
+		} catch(e) {
+			return v.length !== 0;
+		}
+	}
+
+	static getStylePropertyString(elm, prop) {
+		const v = getComputedStyle(elm).getPropertyValue(prop).trim().replace(new RegExp('^\"+|\"+$', 'g'), '');
+		if (!v.length) return null;
+		return (typeof v === 'string') ? v : String(v);
+	}
+
+
+	// -------------------------------------------------------------------------
+
+
+	#divRoot;
+	#ulBar;
+	#ulFld;
+	#liFocusTrap;
+
+	#fldIdx;
+
+	#scrollY = 0;
+	#curIts  = [];
+
+	#skipResize = false;
+
+	constructor(id = null) {
+		this.#divRoot = id ? document.getElementById(id) : document.getElementsByClassName(MenuSimplex.NS)[0];
+		if (!this.#divRoot) return;
+		this.#ulBar = this.#divRoot.getElementsByTagName('ul')[0];
+		if (!this.#ulBar) return;
+
+		[this.#ulFld, this.#fldIdx] = this.initFolder();
+		const its = this.initBarItems();
+		this.initPopup(its);
+		const order = this.initOrder(its);
+		this.#liFocusTrap = this.initFocusTrap();
+
+		const allLis = Array.from(this.#ulBar.querySelectorAll('li'));
+		MenuSimplex.addHoverStateEventListener(this.#divRoot, allLis);
+
+		setTimeout(() => {
+			const ro = new ResizeObserver(
+				() => requestAnimationFrame(() => {
+					if (this.#skipResize) {
+						this.#skipResize = false;
+						return;
+					}
+					this.closeAll(its);
+					this.alignItems(its, order);
+				})
+			);
+			ro.observe(this.#divRoot);
+			ro.observe(this.#divRoot.parentElement);
+		}, 10);
+		setTimeout(() => this.#divRoot.classList.add(MenuSimplex.CLS_READY), 100);
+	}
+
+	initFolder() {
+		let li  = null;
+		let idx = 0;
+		for (const e of this.#ulBar.children) {
+			if (e.classList.contains(MenuSimplex.CLS_FOLDER)) {
+				li = e;
+				break;
+			}
+			idx += 1;
+		}
+		if (!li) {
+			li = document.createElement('li');
+			li.classList.add(MenuSimplex.CLS_FOLDER);
+
+			const pos = MenuSimplex.getStylePropertyString(this.#divRoot, MenuSimplex.CP_FOLDER_POS);
+			if (null === pos || 'end' === pos) {
+				this.#ulBar.append(li);
+				idx = this.#ulBar.children.length - 1;
+			} else if ('start' === pos) {
+				this.#ulBar.prepend(li);
+				idx = 0;
+			}
+		}
+		let btn = li.querySelector(':scope > button');
 		if (!btn) {
 			btn = document.createElement('button');
 			li.appendChild(btn);
 		}
-		let ul = li.querySelector('button + ul');
+		let ul = li.querySelector(':scope > button + ul, :scope > button + * > ul');
 		if (!ul) {
 			ul = document.createElement('ul');
 			ul.classList.add('menu');
 			li.appendChild(ul);
 		}
-		return ul;
+		return [ul, idx];
 	}
 
-	function initPopup(ulBar, lis, autoClose) {
-		const bs = [];
+	initBarItems() {
+		const its = [];
+		const lis = Array.from(this.#ulBar.querySelectorAll(':scope > li'));
 		for (const li of lis) {
-			const btn = li.querySelector(':scope > button');
-			if (!btn) continue;
-			const popup = btn.nextElementSibling;
-			if (!popup) continue;
+			const btn   = li.querySelector(':scope > button');
+			const popup = btn?.nextElementSibling;
+			const width = li.offsetWidth;
+			its.push({ li, btn, popup, width });
+		}
+		return its;
+	}
+
+	initPopup(its) {
+		for (const it of its) {
+			const { li, btn, popup } = it;
+			if (!btn || !popup) continue;
 
 			btn.setAttribute('area-expanded', 'false');
 			if (!popup.id) {
@@ -149,83 +236,113 @@ window['menu_simplex'] = function (id = null, opts = {}) {
 			if (popup.id) {
 				btn.setAttribute('area-controls', popup.id);
 			}
-			btn.addEventListener('click', (e) => {
-				if (btn.classList.contains(CLS_OPENED)) {
-					close(btn);
+			btn.addEventListener('click', e => {
+				if (btn.classList.contains(MenuSimplex.CLS_OPENED)) {
+					this.close(it);
 				} else {
-					if (ulBar === li.parentElement) {
-						closeAll(bs, btn);
+					if (this.#ulBar === li.parentElement) {
+						this.closeAll(its, btn);
 					}
-					open(btn);
-					scrollY = window.scrollY;
+					this.open(it);
 				}
 				e.stopPropagation();
 			});
-			bs.push(btn);
 		}
 		window.addEventListener('keydown', e => {
 			if (e.key === 'Escape') {
-				if (curBtns.length) {
-					curBtns[curBtns.length - 1].focus();
-					curBtns[curBtns.length - 1].click();
+				if (this.#curIts.length) {
+					const btn = this.#curIts[this.#curIts.length - 1].btn;
+					btn.focus();
+					btn.click();
 				}
 			}
 		});
-		if (autoClose) {
-			onScroll(() => doOnScroll(ulBar, bs, scrollY));
-			document.addEventListener('click', () => closeAll(bs));
+		if (true === MenuSimplex.getStylePropertyBool(this.#divRoot, MenuSimplex.CP_IS_CLOSED_AUTO)) {
+			document.addEventListener('DOMContentLoaded', () => {
+				window.addEventListener('scroll', MenuSimplex.throttle(() => this.doOnScroll(its)), { passive: true });
+			});
+			document.addEventListener('click', () => this.closeAll(its));
 		}
-		return bs;
+	}
+
+	initOrder(its) {
+		const ws = new Array(its.length);
+		for (let i = 0; i < its.length; i += 1) {
+			const { li } = its[i];
+			ws[i] = this.getWeightFromClass(li, its.length - i);
+		}
+		const order = new Array(its.length);
+		for (let i = 0; i < its.length; i += 1) order[i] = i;
+		order.sort((a, b) => ws[a] < ws[b] ? 1 : ws[a] > ws[b] ? -1 : 0);
+
+		if (true === MenuSimplex.getStylePropertyBool(this.#divRoot, MenuSimplex.CP_IS_REVERSED)) {
+			order.reverse();
+		}
+		return order;
+	}
+
+	getWeightFromClass(li, def) {
+		const cs = li.className.split(' ');
+		let w = null;
+		for (const c of cs) {
+			const n = parseInt(c, 10);
+			if (isNaN(n)) continue;
+			if (null === w || w < n) w = n;
+		}
+		return w ?? def;
+	}
+
+	initFocusTrap() {
+		const e = document.createElement('li');
+		e.className = 'focus-trap';
+		e.tabIndex = 0;
+		e.addEventListener('focus', () => {
+			if (this.#curIts.length) {
+				this.#curIts[0].btn.focus();
+			}
+		});
+		return e;
 	}
 
 
 	// -------------------------------------------------------------------------
 
 
-	const focusTrap = document.createElement('li');
-	focusTrap.className = 'focus-trap';
-	focusTrap.tabIndex = 0;
-	focusTrap.addEventListener('focus', () => {
-		if (curBtns.length) {
-			curBtns[0].focus();
-		}
-	});
-
-	function open(btn) {
-		const li    = btn.parentElement;
-		const popup = btn.nextElementSibling;
+	open(it) {
+		const { li, btn, popup } = it;
 		if (!popup) return;
 
-		li.classList.add(CLS_OPENED);
-		btn.classList.add(CLS_OPENED);
+		li.classList.add(MenuSimplex.CLS_OPENED);
+		btn.classList.add(MenuSimplex.CLS_OPENED);
 		btn.setAttribute('area-expanded', 'true');
+		popup.classList.add(MenuSimplex.CLS_ACTIVE);
 
-		popup.classList.add(CLS_ACTIVE);
-		setTimeout(() => {
-			popup.classList.add(CLS_OPENED);
-		}, 0);
-		curBtns.push(btn);
+		setTimeout(() => popup.classList.add(MenuSimplex.CLS_OPENED), 0);
+		this.#curIts.push(it);
+
 		popup.style.transform = null;
-		adjustPopupInline(curBtns[0].nextElementSibling);
+		this.adjustPopupInline(this.#curIts[0].popup);
 
-		if (1 === curBtns.length) {
+		this.#scrollY = window.scrollY;
+
+		if (1 === this.#curIts.length) {
 			const ul = ('UL' === popup.tagName) ? popup : popup.getElementsByClassName('UL')?.[0];
 			if (ul) {
-				ul.appendChild(focusTrap);
+				ul.appendChild(this.#liFocusTrap);
 			}
 		}
 
-		if (true === getStylePropertyBool(root, CP_IS_BG_FIXED)) {
-			skipResize = true;
-			fixBackground(true);
+		if (true === MenuSimplex.getStylePropertyBool(this.#divRoot, MenuSimplex.CP_IS_BG_FIXED)) {
+			this.#skipResize = true;
+			MenuSimplex.fixBackground(true);
 		}
 	}
 
-	function adjustPopupInline(popup) {
+	adjustPopupInline(popup) {
 		popup.style.transform = null;
 		popup.style.maxWidth = null;
 		let pr = popup.getBoundingClientRect();
-		const rr = root.getBoundingClientRect();
+		const rr = this.#divRoot.getBoundingClientRect();
 		if (rr.width < pr.width) {
 			popup.style.maxWidth = `${rr.width}px`;
 			pr = popup.getBoundingClientRect();
@@ -238,131 +355,141 @@ window['menu_simplex'] = function (id = null, opts = {}) {
 		}
 	}
 
-	function close(btn) {
-		const li    = btn.parentElement;
-		const popup = btn.nextElementSibling;
+	close(it) {
+		const { li, btn, popup } = it;
 		if (!popup) return;
 
-		li.classList.remove(CLS_OPENED);
-		btn.classList.remove(CLS_OPENED);
+		li.classList.remove(MenuSimplex.CLS_OPENED);
+		btn.classList.remove(MenuSimplex.CLS_OPENED);
 		btn.setAttribute('area-expanded', 'false');
+		popup.classList.remove(MenuSimplex.CLS_OPENED);
 
-		popup.classList.remove(CLS_OPENED);
 		setTimeout(() => {
-			popup.classList.remove(CLS_ACTIVE);
-			if (curBtns.length) adjustPopupInline(curBtns[0].nextElementSibling);
+			popup.classList.remove(MenuSimplex.CLS_ACTIVE);
+			if (this.#curIts.length) this.adjustPopupInline(this.#curIts[0].popup);
 		}, 200);
-		curBtns.pop();
+		this.#curIts.pop();
 
-		if (0 === curBtns.length) {
+		if (0 === this.#curIts.length) {
 			const ul = ('UL' === popup.tagName) ? popup : popup.getElementsByClassName('UL')?.[0];
-			if (ul && focusTrap.parentElement === ul) {
-				ul.removeChild(focusTrap);
+			if (ul && this.#liFocusTrap.parentElement === ul) {
+				ul.removeChild(this.#liFocusTrap);
 			}
 		}
 
-		if (getStylePropertyBool(root, CP_IS_BG_FIXED)) {
-			skipResize = true;
-			fixBackground(false);
+		if (MenuSimplex.getStylePropertyBool(this.#divRoot, MenuSimplex.CP_IS_BG_FIXED)) {
+			this.#skipResize = true;
+			MenuSimplex.fixBackground(false);
 		}
 	}
 
-	function closeAll(buttons, opening = null) {
-		for (const btn of buttons) {
-			if (opening !== btn) {
-				close(btn);
+	closeAll(its, opening = null) {
+		if (!this.#curIts.length) return;
+
+		for (const it of its) {
+			const { btn } = it;
+			if (btn && opening !== btn) {
+				this.close(it);
 			}
 		}
-		curBtns.length = 0;
+		this.#curIts.length = 0;
 
-		if (getStylePropertyBool(root, CP_IS_BG_FIXED)) {
-			skipResize = true;
-			fixBackground(false);
+		if (MenuSimplex.getStylePropertyBool(this.#divRoot, MenuSimplex.CP_IS_BG_FIXED)) {
+			this.#skipResize = true;
+			MenuSimplex.fixBackground(false);
 		}
 	}
 
-	function doOnScroll(ulBar, buttons, scrollTop) {
-		if (!curBtns.length || !curBtns[0].nextElementSibling) {
+	doOnScroll(its) {
+		if (!this.#curIts.length || !this.#curIts[0].popup) {
 			return;
 		}
-		const bcr = curBtns[0].nextElementSibling.getBoundingClientRect();
+		const bcr = this.#curIts[0].popup.getBoundingClientRect();
 		if (
 			bcr.bottom < 0 ||  // When not fixed
-			(0 < bcr.top && bcr.bottom < Math.abs(window.scrollY - scrollTop))  // When fixed
+			(0 < bcr.top && bcr.bottom < Math.abs(window.scrollY - this.#scrollY))  // When fixed
 		) {
-			closeAll(buttons);
+			this.closeAll(its);
 		}
 	}
 
-	function setMaxWidth(root) {
-		const p  = root.parentElement;
-		const cs = getComputedStyle(p);
-		const w  = p.clientWidth - (parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight));
-		root.style.setProperty(CP_MAX_WIDTH, `${Math.floor(w)}px`);
-	}
+	alignItems(its, order) {
+		this.setMaxWidth();
+		const inBar = this.calcItemPlace(its, order);
 
-	function alignItems(ws, ulBar, ulFolder, lis, fIdx, order) {
-		const barW = calcBarWidth(ulBar);
-		let colGap = parseInt(getComputedStyle(ulBar).columnGap, 10);
-		colGap = Number.isNaN(colGap) ? 0 : colGap;
-
-		const inBar = calcItemPlace(barW, ws, order, colGap, fIdx);
-
-		if (false === getStylePropertyBool(root, CP_IS_FOLDABLE)) {
+		if (false === MenuSimplex.getStylePropertyBool(this.#divRoot, MenuSimplex.CP_IS_FOLDABLE)) {
 			inBar.fill(true);
-			inBar[fIdx] = false;
+			inBar[this.#fldIdx] = false;
 		}
-		lis[fIdx].style.display = inBar[fIdx] ? null : 'none';
+		its[this.#fldIdx].li.style.display = inBar[this.#fldIdx] ? null : 'none';
 
-		let prevElm = ulBar.firstChild;
-		for (let i = 0; i < lis.length; i += 1) {
-			const li = lis[i];
+		let prevElm = this.#ulBar.firstChild;
+		for (let i = 0; i < its.length; i += 1) {
+			const { li } = its[i];
 			if (inBar[i]) {
-				if (li.parentElement === ulBar) {
-					ws[i] = li.offsetWidth;
+				if (li.parentElement === this.#ulBar) {
+					its[i].width = li.offsetWidth;
 				}
-				ulBar.insertBefore(li, prevElm.nextElementSibling);
+				this.#ulBar.insertBefore(li, prevElm.nextElementSibling);
 				prevElm = li;
-			} else if(i !== fIdx) {
-				ulFolder.appendChild(li);
+			} else if(i !== this.#fldIdx) {
+				this.#ulFld.appendChild(li);
 			}
 		}
 	}
 
-	function calcBarWidth(ulBar) {
-		ulBar.style.width = '0';
-		let barW = Math.floor(root.getBoundingClientRect().width);
-		if (barW === 0 && root.parentElement) {
-			const rps = getComputedStyle(root.parentElement);
-			if (rps.display.endsWith('flex')) {
-				root.style.flexGrow = 1;
-				barW = Math.floor(root.getBoundingClientRect().width);
-				root.style.flexGrow = null;
-			}
-		}
-		ulBar.style.width = null;
-		return barW;
+	setMaxWidth() {
+		const p = this.#divRoot.parentElement;
+		const s = getComputedStyle(p);
+		const w = p.clientWidth - (parseFloat(s.paddingLeft) + parseFloat(s.paddingRight));
+		this.#divRoot.style.setProperty(MenuSimplex.CP_MAX_WIDTH, `${Math.floor(w)}px`);
 	}
 
-	function calcItemPlace(ulBarW, ws, order, colGap, fIdx) {
-		const inBar = new Array(ws.length);
-		const sumW  = ws.reduce((s, v) => s + v) + (colGap * (ws.length - 1)) - (ws[fIdx] + colGap);
+	calcItemPlace(its, order) {
+		const inBar = new Array(its.length);
 
-		if (ulBarW < sumW) {
-			ulBarW -= ws[fIdx];
-			inBar[fIdx] = true;
+		const gap  = this.calcBarGap();
+		const sumW = its.reduce((s, v) => s + v.width, 0) + (gap * (its.length - 1)) - (its[this.#fldIdx].width + gap);
+		let barW   = this.calcBarWidth();
+
+		if (barW < sumW) {
+			barW -= its[this.#fldIdx].width;
+			inBar[this.#fldIdx] = true;
 
 			for (const idx of order) {
-				if (idx !== fIdx) {
-					ulBarW -= ws[idx] + colGap;
-					inBar[idx] = (0 <= ulBarW);
+				if (idx !== this.#fldIdx) {
+					barW -= its[idx].width + gap;
+					inBar[idx] = (0 <= barW);
 				}
 			}
 		} else {
 			inBar.fill(true);
-			inBar[fIdx] = false;
+			inBar[this.#fldIdx] = false;
 		}
 		return inBar;
 	}
 
-};
+	calcBarWidth() {
+		this.#ulBar.style.width = '0';
+		let w = Math.floor(this.#divRoot.getBoundingClientRect().width);
+
+		if (0 === w) {
+			const s = getComputedStyle(this.#divRoot.parentElement);
+			if (s.display.endsWith('flex')) {
+				this.#divRoot.style.flexGrow = 1;
+				w = Math.floor(this.#divRoot.getBoundingClientRect().width);
+				this.#divRoot.style.flexGrow = null;
+			}
+		}
+
+		this.#ulBar.style.width = null;
+		return w;
+	}
+
+	calcBarGap() {
+		const s = getComputedStyle(this.#ulBar);
+		const g = parseInt(s.columnGap, 10);
+		return Number.isNaN(g) ? 0 : g;
+	}
+
+}

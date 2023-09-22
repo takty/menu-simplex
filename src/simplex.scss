@@ -2,10 +2,8 @@
  * Menu Simplex
  *
  * @author Takuto Yanagida
- * @version 2023-09-20
+ * @version 2023-09-23
  */
-
-@use 'mixin';
 
 .menu-simplex {
 	--bar-item-width  : unset;
@@ -22,6 +20,12 @@
 	--popup-item-width  : unset;
 	--popup-item-height : 3rem;
 	--popup-item-padding: 0.25rem 1rem;
+
+	--is-foldable        : 'true';  // 'true' or 'false'. Default is 'true'.
+	--is-closed-auto     : 'true';  // 'true' or 'false'. Default is 'true'.
+	--is-background-fixed: 'false';  // 'true' or 'false'. Default is 'false'.
+	--is-reversed        : 'false';  // 'true' or 'false'. Default is 'false'.
+	--folder-position    : 'end';  // 'start' or 'end'. Default is 'end'.
 }
 
 
@@ -155,7 +159,7 @@
 		}
 	}
 
-	> ul > li.hamburger > button:first-child {
+	> ul > li.folder > button:first-child {
 		padding-inline: 1.5rem;
 		&::after {
 			inset-inline-end: 1.25rem;
@@ -254,7 +258,7 @@
 	}
 }
 
-.menu-simplex > ul > li.hamburger > *:first-child + * {  // Hamburger
+.menu-simplex > ul > li.folder > *:first-child + * {  // Folder
 	> li {
 		> *:first-child + * {
 			opacity   : 0;
