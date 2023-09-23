@@ -2,7 +2,7 @@
  * Menu Simplex (Progressively collapsing menu)
  *
  * @author Takuto Yanagida
- * @version 2023-09-23
+ * @version 2023-09-24
  */
 
 window['menu_simplex'] = function (id = null) {
@@ -47,11 +47,11 @@ class MenuSimplex {
 		};
 	}
 
-	static addHoverStateEventListener(root, items) {
+	static addHoverStateEventListener(root, elms) {
 		const enter = e => {
 			const li = e.target.parentElement;
 
-			if (e.pointerType === 'mouse' && !li.classList.contains(MenuSimplex.CLS_CURRENT)) {
+			if (li && e.pointerType === 'mouse' && !li.classList.contains(MenuSimplex.CLS_CURRENT)) {
 				li.classList.add(MenuSimplex.CLS_HOVER);
 				for (let elm = li.parentElement; elm && elm !== root; elm = elm.parentElement) {
 					if (elm.tagName === 'LI') {
@@ -63,7 +63,7 @@ class MenuSimplex {
 		const leave = e => {
 			const li = e.target.parentElement;
 
-			if (e.pointerType === 'mouse' && !li.classList.contains(MenuSimplex.CLS_CURRENT)) {
+			if (li && e.pointerType === 'mouse' && !li.classList.contains(MenuSimplex.CLS_CURRENT)) {
 				li.classList.remove(MenuSimplex.CLS_HOVER);
 				for (let elm = li.parentElement; elm && elm !== root; elm = elm.parentElement) {
 					if (elm.tagName === 'LI') {
@@ -72,9 +72,12 @@ class MenuSimplex {
 				}
 			}
 		}
-		for (const it of items) {
-			it.firstElementChild.addEventListener('pointerenter', enter);
-			it.firstElementChild.addEventListener('pointerleave', leave);
+		for (const it of elms) {
+			const fec = it.firstElementChild;
+			if (fec) {
+				fec.addEventListener('pointerenter', enter);
+				fec.addEventListener('pointerleave', leave);
+			}
 		}
 	}
 
@@ -87,7 +90,9 @@ class MenuSimplex {
 		const scrollingElement = () => {
 			return ('scrollingElement' in document) ? document.scrollingElement : document.documentElement;
 		};
-		const sy = enabled ? scrollingElement().scrollTop : parseInt(document.body.style.top ?? '0');
+		const se = scrollingElement();
+		if (!se) return;
+		const sy = enabled ? se.scrollTop : parseInt(document.body.style.top ?? '0');
 		const cs = getComputedStyle(document.body);
 		const mw = parseFloat(cs.marginInlineStart) + parseFloat(cs.marginInlineEnd);
 		const ss = {
@@ -100,7 +105,7 @@ class MenuSimplex {
 			'overflow-y': 'scroll',  // For keeping scroll bar width.
 		};
 		for (const [key, value] of Object.entries(ss)) {
-			document.body.style[key] = enabled ? value : null;
+			document.body.style[key] = enabled ? value : '';
 		}
 		if (!enabled) {
 			window.scrollTo(0, -sy);
@@ -144,7 +149,7 @@ class MenuSimplex {
 		this.#divRoot = id ? document.getElementById(id) : document.getElementsByClassName(MenuSimplex.NS)[0];
 		if (!this.#divRoot) return;
 		this.#ulBar = this.#divRoot.getElementsByTagName('ul')[0];
-		if (!this.#ulBar) return;
+		if (!this.#ulBar) throw new DOMException();
 
 		[this.#ulFld, this.#fldIdx] = this.initFolder();
 		const its = this.initBarItems();
@@ -213,7 +218,7 @@ class MenuSimplex {
 		const its = [];
 		const lis = Array.from(this.#ulBar.querySelectorAll(':scope > li'));
 		for (const li of lis) {
-			const btn   = li.querySelector(':scope > button');
+			const btn = li.querySelector(':scope > button');
 			const popup = btn?.nextElementSibling;
 			const width = li.offsetWidth;
 			its.push({ li, btn, popup, width });
@@ -252,8 +257,10 @@ class MenuSimplex {
 			if (e.key === 'Escape') {
 				if (this.#curIts.length) {
 					const btn = this.#curIts[this.#curIts.length - 1].btn;
-					btn.focus();
-					btn.click();
+					if (btn) {
+						btn.focus();
+						btn.click();
+					}
 				}
 			}
 		});
@@ -298,7 +305,8 @@ class MenuSimplex {
 		e.tabIndex = 0;
 		e.addEventListener('focus', () => {
 			if (this.#curIts.length) {
-				this.#curIts[0].btn.focus();
+				const { btn } = this.#curIts[0];
+				if (btn) btn.focus();
 			}
 		});
 		return e;
@@ -310,7 +318,7 @@ class MenuSimplex {
 
 	open(it) {
 		const { li, btn, popup } = it;
-		if (!popup) return;
+		if (!btn || !popup) return;
 
 		li.classList.add(MenuSimplex.CLS_OPENED);
 		btn.classList.add(MenuSimplex.CLS_OPENED);
@@ -320,9 +328,10 @@ class MenuSimplex {
 		setTimeout(() => popup.classList.add(MenuSimplex.CLS_OPENED), 0);
 		this.#curIts.push(it);
 
-		popup.style.transform = null;
-		this.adjustPopupInline(this.#curIts[0].popup);
-
+		popup.style.transform = '';
+		if (this.#curIts[0].popup) {
+			this.adjustPopupInline(this.#curIts[0].popup);
+		}
 		this.#scrollY = window.scrollY;
 
 		if (1 === this.#curIts.length) {
@@ -339,8 +348,8 @@ class MenuSimplex {
 	}
 
 	adjustPopupInline(popup) {
-		popup.style.transform = null;
-		popup.style.maxWidth = null;
+		popup.style.transform = '';
+		popup.style.maxWidth = '';
 		let pr = popup.getBoundingClientRect();
 		const rr = this.#divRoot.getBoundingClientRect();
 		if (rr.width < pr.width) {
@@ -357,7 +366,7 @@ class MenuSimplex {
 
 	close(it) {
 		const { li, btn, popup } = it;
-		if (!popup) return;
+		if (!btn || !popup) return;
 
 		li.classList.remove(MenuSimplex.CLS_OPENED);
 		btn.classList.remove(MenuSimplex.CLS_OPENED);
@@ -366,7 +375,10 @@ class MenuSimplex {
 
 		setTimeout(() => {
 			popup.classList.remove(MenuSimplex.CLS_ACTIVE);
-			if (this.#curIts.length) this.adjustPopupInline(this.#curIts[0].popup);
+			if (this.#curIts.length) {
+				const { popup } = this.#curIts[0];
+				if (popup) this.adjustPopupInline(popup);
+			}
 		}, 200);
 		this.#curIts.pop();
 
@@ -421,7 +433,7 @@ class MenuSimplex {
 			inBar.fill(true);
 			inBar[this.#fldIdx] = false;
 		}
-		its[this.#fldIdx].li.style.display = inBar[this.#fldIdx] ? null : 'none';
+		its[this.#fldIdx].li.style.display = inBar[this.#fldIdx] ? '' : 'none';
 
 		let prevElm = this.#ulBar.firstChild;
 		for (let i = 0; i < its.length; i += 1) {
@@ -440,9 +452,11 @@ class MenuSimplex {
 
 	setMaxWidth() {
 		const p = this.#divRoot.parentElement;
-		const s = getComputedStyle(p);
-		const w = p.clientWidth - (parseFloat(s.paddingLeft) + parseFloat(s.paddingRight));
-		this.#divRoot.style.setProperty(MenuSimplex.CP_MAX_WIDTH, `${Math.floor(w)}px`);
+		if (p) {
+			const s = getComputedStyle(p);
+			const w = p.clientWidth - (parseFloat(s.paddingLeft) + parseFloat(s.paddingRight));
+			this.#divRoot.style.setProperty(MenuSimplex.CP_MAX_WIDTH, `${Math.floor(w)}px`);
+		}
 	}
 
 	calcItemPlace(its, order) {
@@ -473,16 +487,16 @@ class MenuSimplex {
 		this.#ulBar.style.width = '0';
 		let w = Math.floor(this.#divRoot.getBoundingClientRect().width);
 
-		if (0 === w) {
+		if (0 === w && this.#divRoot.parentElement) {
 			const s = getComputedStyle(this.#divRoot.parentElement);
 			if (s.display.endsWith('flex')) {
-				this.#divRoot.style.flexGrow = 1;
+				this.#divRoot.style.flexGrow = '1';
 				w = Math.floor(this.#divRoot.getBoundingClientRect().width);
-				this.#divRoot.style.flexGrow = null;
+				this.#divRoot.style.flexGrow = '';
 			}
 		}
 
-		this.#ulBar.style.width = null;
+		this.#ulBar.style.width = '';
 		return w;
 	}
 
