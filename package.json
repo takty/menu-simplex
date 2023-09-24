@@ -25,7 +25,7 @@
 	],
 	"scripts": {
 		"build": "parcel build src/simplex.ts src/simplex.scss",
-		"docs": "parcel build src/_docs/*.html --dist-dir docs  --public-url ./",
+		"docs": "parcel src/_docs/*.html --dist-dir docs  --public-url /menu-simplex/",
 		"debug": "tsc --noEmit"
 	},
 	"devDependencies": {
