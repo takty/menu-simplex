@@ -2,7 +2,7 @@
  * Menu Simplex
  *
  * @author Takuto Yanagida
- * @version 2023-09-23
+ * @version 2023-09-25
  */
 
 .menu-simplex {
@@ -13,9 +13,11 @@
 	--bar-mark-color: #000;
 	--bar-mark-path :  polygon(0% 20%, 100% 20%, 50% 95%);
 
-	--popup-offset      : 0.25rem;
+	--popup-offset      : 2px;
 	--popup-bg-color    : #fff;
 	--popup-shadow      : 0 4px 8px 0 #0004;
+	--popup-max-width   : 24rem;
+	--popup-sub-indent  : 1rem;
 
 	--popup-item-width  : unset;
 	--popup-item-height : 3rem;
@@ -114,7 +116,7 @@
 		> li {  // Bar item
 			flex-grow: 1;
 
-			> *:first-child {
+			> :is(a, button) {
 				display        : flex;
 				align-items    : center;
 				justify-content: center;
@@ -134,7 +136,7 @@
 
 .menu-simplex.with-popup-hint {
 	ul > li {
-		> button:first-child {
+		> button {
 			padding-inline-end: 2rem;
 
 			position: relative;
@@ -153,13 +155,13 @@
 		}
 
 		&.opened {
-			> button:first-child::after {
+			> button::after {
 				transform: scaleY(-1);
 			}
 		}
 	}
 
-	> ul > li.folder > button:first-child {
+	> ul > li.folder > button {
 		padding-inline: 1.5rem;
 		&::after {
 			inset-inline-end: 1.25rem;
@@ -171,7 +173,7 @@
 // -----------------------------------------------------------------------------
 
 
-.menu-simplex > ul > li > *:first-child + * {  // Popup
+.menu-simplex > ul > li > :is(ul, div) {  // Popup
 	opacity   : 0;
 	transition: opacity 0.15s 0.05s;
 	&:not(.active) {
@@ -183,10 +185,10 @@
 	}
 }
 
-.menu-simplex > ul > li > *:first-child + * {  // Popup
+.menu-simplex > ul > li > :is(ul, div) {  // Popup
 	position          : absolute;
 	inset-inline-start: 0;
-	inset-block-start : calc(100% + 2px);
+	inset-block-start : calc(100% + var(--popup-offset));
 	z-index           : 1000;
 
 	&.end   { inset-inline-end  : 0; }
@@ -199,11 +201,11 @@
 	justify-content: center;
 	flex-direction : column;
 
-	width: max-content;
-	max-width: 24rem;
+	width    : max-content;
+	max-width: var(--popup-max-width);
 
 	li {  // Popup item
-		> *:first-child {
+		> :is(a, button) {
 			display        : flex;
 			align-items    : center;
 			justify-content: flex-start;
@@ -226,13 +228,13 @@
 		}
 
 		ul {
-			margin-inline-start: 1rem;
+			margin-inline-start: var(--popup-sub-indent);
 		}
 	}
 }
-.menu-simplex.with-popup-hint > ul > li > *:first-child + * {  // Popup
+.menu-simplex.with-popup-hint > ul > li > :is(ul, div) {  // Popup
 	li {
-		> button:first-child {
+		> button {
 			padding-inline-end: 2rem;
 
 			position: relative;
@@ -251,16 +253,16 @@
 		}
 
 		&.opened {
-			> button:first-child::after {
+			> button::after {
 				transform: scaleY(-1);
 			}
 		}
 	}
 }
 
-.menu-simplex > ul > li.folder > *:first-child + * {  // Folder
+.menu-simplex > ul > li.folder > :is(ul, div) {  // Folder
 	> li {
-		> *:first-child + * {
+		> :is(ul, div) {
 			opacity   : 0;
 			transition: opacity 0.15s 0.05s;
 			&:not(.active) {
