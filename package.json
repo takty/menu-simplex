@@ -4,6 +4,7 @@
 	"description": "Flexible Menu Component",
 	"license": "MIT",
 	"author": "Takuto Yanagida",
+	"type": "module",
 	"homepage": "https://github.com/takty/menu-simplex#readme",
 	"keywords": [
 		"js",
@@ -24,14 +25,15 @@
 		"not dead"
 	],
 	"scripts": {
-		"build": "parcel build src/menu-simplex.ts src/menu-simplex.scss",
-		"docs": "parcel src/_docs/*.html --dist-dir docs  --public-url /menu-simplex/",
+		"build": "node ./build.js",
+		"docs": "vite build src/_docs --outDir ../../docs --base ./ --emptyOutDir",
+		"dev": "vite src/_docs --base ./",
 		"debug": "tsc --noEmit"
 	},
 	"devDependencies": {
-		"@parcel/transformer-sass": "2.9.3",
-		"@parcel/transformer-typescript-tsc": "^2.9.3",
-		"parcel": "^2.9.3",
-		"typescript": "^5.2.2"
+		"esbuild": "^0.19.3",
+		"esbuild-sass-plugin": "^2.15.0",
+		"typescript": "^5.2.2",
+		"vite": "^4.4.9"
 	}
 }

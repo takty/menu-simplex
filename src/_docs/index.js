@@ -5,6 +5,9 @@
  * @version 2023-09-25
  */
 
+import './style.scss';
+import '../menu-simplex.scss';
+
 import { MenuSimplex } from '../menu-simplex.ts';
 
 new MenuSimplex('mp0');
