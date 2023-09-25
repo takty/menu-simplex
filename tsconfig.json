@@ -24,6 +24,6 @@
 		"removeComments": true,
 	},
 	"files": [
-		"src/simplex.ts"
+		"src/menu-simplex.ts"
 	]
 }

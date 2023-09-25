@@ -24,7 +24,7 @@
 		"not dead"
 	],
 	"scripts": {
-		"build": "parcel build src/simplex.ts src/simplex.scss",
+		"build": "parcel build src/menu-simplex.ts src/menu-simplex.scss",
 		"docs": "parcel src/_docs/*.html --dist-dir docs  --public-url /menu-simplex/",
 		"debug": "tsc --noEmit"
 	},

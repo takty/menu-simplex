@@ -2,23 +2,10 @@
  * Menu Simplex (Progressively collapsing menu)
  *
  * @author Takuto Yanagida
- * @version 2023-09-24
+ * @version 2023-09-25
  */
 
-(window as any)['menu_simplex'] = function (id: string|null = null) {
-	new MenuSimplex(id);
-};
-
-class Item {
-	constructor(public li:HTMLElement, public btn:HTMLElement|null, public popup:HTMLElement|null, public width: number) {
-		this.li    = li;
-		this.btn   = btn;
-		this.popup = popup;
-		this.width = width;
-	}
-}
-
-class MenuSimplex {
+export class MenuSimplex {
 
 	static NS = 'menu-simplex';
 
@@ -142,15 +129,15 @@ class MenuSimplex {
 	// -------------------------------------------------------------------------
 
 
-	#divRoot: HTMLElement;
-	#ulBar: HTMLElement;
-	#ulFld: HTMLElement;
+	#divRoot    : HTMLElement;
+	#ulBar      : HTMLElement;
+	#ulFld      : HTMLElement;
 	#liFocusTrap: HTMLElement;
 
 	#fldIdx: number;
 
 	#scrollY: number = 0;
-	#curIts: Item[] = [];
+	#curIts : Item[] = [];
 
 	#skipResize: boolean = false;
 
@@ -160,6 +147,10 @@ class MenuSimplex {
 		this.#divRoot = divRoot as HTMLElement;
 		this.#ulBar = this.#divRoot.getElementsByTagName('ul')[0];
 		if (!this.#ulBar) throw new DOMException();
+
+		if (!this.#divRoot.classList.contains(MenuSimplex.NS)) {
+			this.#divRoot.classList.add(MenuSimplex.NS);
+		}
 
 		[this.#ulFld, this.#fldIdx] = this.initFolder();
 		const its = this.initBarItems();
@@ -514,6 +505,17 @@ class MenuSimplex {
 		const s = getComputedStyle(this.#ulBar);
 		const g = parseInt(s.columnGap, 10);
 		return Number.isNaN(g) ? 0 : g;
+	}
+
+}
+
+class Item {
+
+	constructor(public li:HTMLElement, public btn:HTMLElement|null, public popup:HTMLElement|null, public width: number) {
+		this.li    = li;
+		this.btn   = btn;
+		this.popup = popup;
+		this.width = width;
 	}
 
 }
