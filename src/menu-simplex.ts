@@ -109,11 +109,14 @@ export class MenuSimplex {
 	}
 
 	static getStylePropertyBool(elm: HTMLElement, prop: string): boolean|null {
-		const v = getComputedStyle(elm).getPropertyValue(prop).trim();
+		let v = getComputedStyle(elm).getPropertyValue(prop).trim();
+		if (('"' === v.at(0) && '"' === v.at(-1)) || ("'" === v.at(0) && "'" === v.at(-1))) {
+			v = v.slice(1, -1);
+		}
 		if (!v.length) return null;
 		if (typeof v !== 'string') return Boolean(v);
 		try {
-			return 'true' == JSON.parse(v.toLowerCase());
+			return true === JSON.parse(v.toLowerCase());
 		} catch(e) {
 			return v.length !== 0;
 		}
@@ -263,8 +266,9 @@ export class MenuSimplex {
 		}
 		window.addEventListener('keydown', (e) => {
 			if (e.key === 'Escape') {
-				if (this.#curIts.length) {
-					const { btn } = this.#curIts[this.#curIts.length - 1];
+				const it = this.#curIts.at(-1);
+				if (it) {
+					const { btn } = it;
 					if (btn) {
 						btn.focus();
 						btn.click();
@@ -272,7 +276,7 @@ export class MenuSimplex {
 				}
 			}
 		});
-		if (true === MenuSimplex.getStylePropertyBool(this.#divRoot, MenuSimplex.CP_IS_CLOSED_AUTO)) {
+		if (MenuSimplex.getStylePropertyBool(this.#divRoot, MenuSimplex.CP_IS_CLOSED_AUTO)) {
 			document.addEventListener('DOMContentLoaded', () => {
 				window.addEventListener('scroll', MenuSimplex.throttle(() => this.doOnScroll(its)), { passive: true });
 			});
@@ -281,18 +285,17 @@ export class MenuSimplex {
 	}
 
 	initOrder(its: Item[]): number[] {
+		const rev = MenuSimplex.getStylePropertyBool(this.#divRoot, MenuSimplex.CP_IS_REVERSED);
+
 		const ws = new Array(its.length);
 		for (let i = 0; i < its.length; i += 1) {
 			const { li } = its[i];
-			ws[i] = this.getWeightFromClass(li, its.length - i);
+			ws[i] = this.getWeightFromClass(li, rev ? i : its.length - i);
 		}
 		const order = new Array(its.length);
 		for (let i = 0; i < its.length; i += 1) order[i] = i;
 		order.sort((a: number, b: number) => ws[a] < ws[b] ? 1 : ws[a] > ws[b] ? -1 : 0);
 
-		if (true === MenuSimplex.getStylePropertyBool(this.#divRoot, MenuSimplex.CP_IS_REVERSED)) {
-			order.reverse();
-		}
 		return order;
 	}
 
@@ -349,7 +352,7 @@ export class MenuSimplex {
 			}
 		}
 
-		if (true === MenuSimplex.getStylePropertyBool(this.#divRoot, MenuSimplex.CP_IS_BG_FIXED)) {
+		if (MenuSimplex.getStylePropertyBool(this.#divRoot, MenuSimplex.CP_IS_BG_FIXED)) {
 			this.#skipResize = true;
 			MenuSimplex.fixBackground(true);
 		}
