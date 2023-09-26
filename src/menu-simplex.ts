@@ -2,20 +2,20 @@
  * Menu Simplex (Progressively collapsing menu)
  *
  * @author Takuto Yanagida
- * @version 2023-09-25
+ * @version 2023-09-26
  */
 
 export class MenuSimplex {
 
 	static NS = 'menu-simplex';
 
-	static CP_IS_FOLDABLE    = '--is-foldable';
 	static CP_IS_CLOSED_AUTO = '--is-closed-auto';
 	static CP_IS_BG_FIXED    = '--is-background-fixed';
 	static CP_IS_REVERSED    = '--is-reversed';
-	static CP_FOLDER_POS     = '--folder-position';
+	static CP_MORE_POS       = '--more-position';
+	static CP_COLLAPSED      = '--collapsed';
 
-	static CLS_FOLDER  = 'folder';
+	static CLS_MORE    = 'more';
 	static CLS_CURRENT = 'current';
 
 	static CLS_READY          = 'ready';
@@ -43,7 +43,7 @@ export class MenuSimplex {
 		};
 	}
 
-	static addHoverStateEventListener(root: HTMLElement, elms: HTMLElement[]) {
+	static addHoverStateEventListener(root: HTMLElement, elms: Element[]) {
 		const enter = (e: PointerEvent) => {
 			const li = (e.target as HTMLElement).parentElement;
 
@@ -131,10 +131,10 @@ export class MenuSimplex {
 
 	#divRoot    : HTMLElement;
 	#ulBar      : HTMLElement;
-	#ulFld      : HTMLElement;
+	#ulMore     : HTMLElement;
 	#liFocusTrap: HTMLElement;
 
-	#fldIdx: number;
+	#moreIdx: number;
 
 	#scrollY: number = 0;
 	#curIts : Item[] = [];
@@ -145,14 +145,14 @@ export class MenuSimplex {
 		const divRoot = id ? document.getElementById(id) : document.getElementsByClassName(MenuSimplex.NS)[0];
 		if (!divRoot) throw new DOMException();
 		this.#divRoot = divRoot as HTMLElement;
-		this.#ulBar = this.#divRoot.getElementsByTagName('ul')[0];
+		this.#ulBar   = this.#divRoot.getElementsByTagName('ul')[0];
 		if (!this.#ulBar) throw new DOMException();
 
 		if (!this.#divRoot.classList.contains(MenuSimplex.NS)) {
 			this.#divRoot.classList.add(MenuSimplex.NS);
 		}
 
-		[this.#ulFld, this.#fldIdx] = this.initFolder();
+		[this.#ulMore, this.#moreIdx] = this.initMore();
 		const its = this.initBarItems();
 		this.initPopup(its);
 		const order = this.initOrder(its);
@@ -178,11 +178,11 @@ export class MenuSimplex {
 		setTimeout(() => this.#divRoot.classList.add(MenuSimplex.CLS_READY), 100);
 	}
 
-	initFolder(): [HTMLElement, number] {
+	initMore(): [HTMLElement, number] {
 		let li: HTMLElement|null = null;
 		let idx = 0;
 		for (const e of Array.from(this.#ulBar.children)) {
-			if (e.classList.contains(MenuSimplex.CLS_FOLDER)) {
+			if (e.classList.contains(MenuSimplex.CLS_MORE)) {
 				li = e as HTMLElement;
 				break;
 			}
@@ -190,9 +190,9 @@ export class MenuSimplex {
 		}
 		if (!li) {
 			li = document.createElement('li');
-			li.classList.add(MenuSimplex.CLS_FOLDER);
+			li.classList.add(MenuSimplex.CLS_MORE);
 
-			const pos = MenuSimplex.getStylePropertyString(this.#divRoot, MenuSimplex.CP_FOLDER_POS);
+			const pos = MenuSimplex.getStylePropertyString(this.#divRoot, MenuSimplex.CP_MORE_POS);
 			if (null === pos || 'end' === pos) {
 				this.#ulBar.append(li);
 				idx = this.#ulBar.children.length - 1;
@@ -204,13 +204,20 @@ export class MenuSimplex {
 		let btn = li.querySelector(':scope > button');
 		if (!btn) {
 			btn = document.createElement('button');
-			li.appendChild(btn);
+			btn.setAttribute('title', 'More');
+			li.insertBefore(btn, li.firstChild);
 		}
-		let ul = li.querySelector(':scope > button + ul, :scope > button + * > ul') as HTMLElement;
+		const uls = li.querySelectorAll(':scope > ul, :scope > div > ul');
+		let ul = Array.from(uls).find(e => !e.children.length) as HTMLElement;
 		if (!ul) {
 			ul = document.createElement('ul');
 			ul.classList.add('menu');
-			li.appendChild(ul);
+			const div = li.querySelector(':scope > div');
+			if (div) {
+				div.appendChild(ul);
+			} else {
+				li.appendChild(ul);
+			}
 		}
 		return [ul, idx];
 	}
@@ -219,10 +226,10 @@ export class MenuSimplex {
 		const its: Item[] = [];
 		const lis = Array.from(this.#ulBar.querySelectorAll(':scope > li'));
 		for (const li of lis) {
-			const btn = li.querySelector(':scope > button');
-			const popup = btn?.nextElementSibling as HTMLElement;
+			const btn = li.querySelector(':scope > button') as HTMLElement;
+			const popup = li.querySelector(':scope > :is(ul, div)') as HTMLElement;
 			const width = (li as HTMLElement).offsetWidth;
-			its.push(new Item(li as HTMLElement, btn as HTMLElement, popup, width));
+			its.push(new Item(li as HTMLElement, btn, popup, width));
 		}
 		return its;
 	}
@@ -336,7 +343,7 @@ export class MenuSimplex {
 		this.#scrollY = window.scrollY;
 
 		if (1 === this.#curIts.length) {
-			const ul = ('UL' === popup.tagName) ? popup : popup.getElementsByClassName('UL')?.[0];
+			const ul = ('UL' === popup.tagName) ? popup : popup.getElementsByTagName('ul')?.[0];
 			if (ul) {
 				ul.appendChild(this.#liFocusTrap);
 			}
@@ -384,7 +391,7 @@ export class MenuSimplex {
 		this.#curIts.pop();
 
 		if (0 === this.#curIts.length) {
-			const ul = ('UL' === popup.tagName) ? popup : popup.getElementsByClassName('UL')?.[0];
+			const ul = ('UL' === popup.tagName) ? popup : popup.getElementsByTagName('ul')?.[0];
 			if (ul && this.#liFocusTrap.parentElement === ul) {
 				ul.removeChild(this.#liFocusTrap);
 			}
@@ -429,12 +436,7 @@ export class MenuSimplex {
 	alignItems(its: Item[], order: number[]) {
 		this.setMaxWidth();
 		const inBar = this.calcItemPlace(its, order);
-
-		if (false === MenuSimplex.getStylePropertyBool(this.#divRoot, MenuSimplex.CP_IS_FOLDABLE)) {
-			inBar.fill(true);
-			inBar[this.#fldIdx] = false;
-		}
-		its[this.#fldIdx].li.style.display = inBar[this.#fldIdx] ? '' : 'none';
+		its[this.#moreIdx].li.style.display = inBar[this.#moreIdx] ? '' : 'none';
 
 		let prevElm = this.#ulBar.firstChild as HTMLElement;
 		for (let i = 0; i < its.length; i += 1) {
@@ -445,8 +447,8 @@ export class MenuSimplex {
 				}
 				this.#ulBar.insertBefore(li, prevElm.nextElementSibling);
 				prevElm = li;
-			} else if(i !== this.#fldIdx) {
-				this.#ulFld.appendChild(li);
+			} else if(i !== this.#moreIdx) {
+				this.#ulMore.appendChild(li);
 			}
 		}
 	}
@@ -462,24 +464,34 @@ export class MenuSimplex {
 
 	calcItemPlace(its: Item[], order: number[]): boolean[] {
 		const inBar = new Array(its.length);
+		switch (MenuSimplex.getStylePropertyString(this.#divRoot, MenuSimplex.CP_COLLAPSED)) {
+			case 'never':
+				inBar.fill(true);
+				inBar[this.#moreIdx] = false;
+				return inBar;
+			case 'always':
+				inBar.fill(false);
+				inBar[this.#moreIdx] = true;
+				return inBar;
+		}
 
 		const gap  = this.calcBarGap();
-		const sumW = its.reduce((s: number, v: Item) => s + v.width, 0) + (gap * (its.length - 1)) - (its[this.#fldIdx].width + gap);
+		const sumW = its.reduce((s: number, v: Item) => s + v.width, 0) + (gap * (its.length - 1)) - (its[this.#moreIdx].width + gap);
 		let barW   = this.calcBarWidth();
 
 		if (barW < sumW) {
-			barW -= its[this.#fldIdx].width;
-			inBar[this.#fldIdx] = true;
+			barW -= its[this.#moreIdx].width;
+			inBar[this.#moreIdx] = true;
 
 			for (const idx of order) {
-				if (idx !== this.#fldIdx) {
+				if (idx !== this.#moreIdx) {
 					barW -= its[idx].width + gap;
 					inBar[idx] = (0 <= barW);
 				}
 			}
 		} else {
 			inBar.fill(true);
-			inBar[this.#fldIdx] = false;
+			inBar[this.#moreIdx] = false;
 		}
 		return inBar;
 	}

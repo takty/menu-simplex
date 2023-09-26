@@ -2,7 +2,7 @@
  * Menu Simplex
  *
  * @author Takuto Yanagida
- * @version 2023-09-25
+ * @version 2023-09-26
  */
 
 .menu-simplex {
@@ -10,8 +10,11 @@
 	--bar-item-height : 3rem;
 	--bar-item-padding: 0.25rem 1rem;
 
+	--bar-item-width-more: 2.75rem;
+
 	--bar-mark-color: #000;
-	--bar-mark-path :  polygon(0% 20%, 100% 20%, 50% 95%);
+	--bar-mark-path : polygon(0% 20%, 100% 20%, 50% 95%);
+	--bar-mark-width: 1px;
 
 	--popup-offset      : 2px;
 	--popup-bg-color    : #fff;
@@ -23,11 +26,11 @@
 	--popup-item-height : 3rem;
 	--popup-item-padding: 0.25rem 1rem;
 
-	--is-foldable        : 'true';  // 'true' or 'false'. Default is 'true'.
-	--is-closed-auto     : 'true';  // 'true' or 'false'. Default is 'true'.
+	--is-closed-auto     : 'true';   // 'true' or 'false'. Default is 'true'.
 	--is-background-fixed: 'false';  // 'true' or 'false'. Default is 'false'.
 	--is-reversed        : 'false';  // 'true' or 'false'. Default is 'false'.
-	--folder-position    : 'end';  // 'start' or 'end'. Default is 'end'.
+	--more-position      : 'end';    // 'start' or 'end'. Default is 'end'.
+	--collapsed          : 'auto';   // 'auto', 'always' or 'never'. Default is 'auto'.
 }
 
 
@@ -46,7 +49,7 @@
 		padding   : 0;
 	}
 
-	:where(li, li > *:first-child) {
+	:where(li, li > :where(a, button)) {
 		transition-duration: 0.2s;
 		transition-property: color, background-color;
 
@@ -106,65 +109,113 @@
 // -----------------------------------------------------------------------------
 
 
-.menu-simplex {
-	> ul {  // Bar
-		max-height: var(--bar-item-height);
+.menu-simplex > ul {  // Bar
+	max-height: var(--bar-item-height);
 
-		display  : inline-flex;
-		flex-wrap: nowrap;
+	display  : inline-flex;
+	flex-wrap: nowrap;
 
-		> li {  // Bar item
-			flex-grow: 1;
+	> li {  // Bar item
+		position: relative;
 
-			> :is(a, button) {
-				display        : flex;
-				align-items    : center;
-				justify-content: center;
+		> :is(a, button) {
+			display        : flex;
+			align-items    : center;
+			justify-content: center;
 
-				width     : 100%;
-				min-width : var(--bar-item-width);
-				min-height: var(--bar-item-height);
-				padding   : var(--bar-item-padding);
+			width     : 100%;
+			min-width : var(--bar-item-width);
+			min-height: var(--bar-item-height);
+			padding   : var(--bar-item-padding);
 
-				white-space: nowrap;
-			}
-
-			position: relative;
+			white-space: nowrap;
 		}
 	}
 }
 
-.menu-simplex.with-popup-hint {
-	ul > li {
-		> button {
-			padding-inline-end: 2rem;
+.menu-simplex.with-popup-hint > ul {  // Bar
+	// Bar Item Button
+	> li > button {
+		padding-inline-end: 2rem;
 
-			position: relative;
-			&::after {
-				content : '';
-				position: absolute;
-				width   : 0.5rem;
-				height  : 0.5rem;
+		position: relative;
+		&::after {
+			content : '';
+			position: absolute;
+			width   : 0.5rem;
+			height  : 0.5rem;
 
-				inset    : 50% 0.75rem auto auto;
-				translate: 0 -0.25rem;
+			inset    : 50% 1rem auto auto;
+			translate: 50% -50%;
 
-				clip-path : var(--bar-mark-path);
-				box-shadow: 0 0 1rem var(--bar-mark-color) inset;
-			}
+			clip-path : var(--bar-mark-path);
+			box-shadow: 0 0 1rem var(--bar-mark-color) inset;
 		}
 
-		&.opened {
-			> button::after {
+		&:where(.opened > *) {
+			&::after {
 				transform: scaleY(-1);
 			}
 		}
-	}
 
-	> ul > li.folder > button {
-		padding-inline: 1.5rem;
-		&::after {
-			inset-inline-end: 1.25rem;
+		&:where(.more > *) {
+			padding  : 0;
+			min-width: var(--bar-item-width-more);
+
+			&::after {
+				inset    : 50% auto auto 50%;
+				translate: -50% -50%;
+			}
+		}
+	}
+}
+
+.menu-simplex.with-more-hint > ul {  // Bar
+	// Bar Item Button
+	> li > button {
+		&:where(.more > *) {
+			padding  : 0;
+			min-width: var(--bar-item-width-more);
+
+			background: {
+				size    : 1rem var(--bar-mark-width);
+				image   : linear-gradient(to top, var(--bar-mark-color), var(--bar-mark-color));
+				repeat  : no-repeat;
+				position: center center;
+			}
+
+			position: relative;
+			&::after,
+			&::before {
+				content : '';
+				position: absolute;
+				width   : 1rem;
+				height  : var(--bar-mark-width);
+
+				background-color: var(--bar-mark-color);
+				clip-path       : none;
+
+				inset: calc(50% - var(--bar-mark-width) * 0.5) auto auto calc(50% - 1rem * 0.5);
+			}
+			&::before {
+				translate: 0 -4px;
+			}
+			&::after {
+				translate: 0 4px;
+			}
+		}
+
+		&:where(.more.opened > *) {
+			background-image: none;
+
+			&::before {
+				rotate   : -45deg;
+				translate: 0 0;
+			}
+			&::after {
+				rotate   : 45deg;
+				translate: 0 0;
+			}
 		}
 	}
 }
@@ -176,9 +227,11 @@
 .menu-simplex > ul > li > :is(ul, div) {  // Popup
 	opacity   : 0;
 	transition: opacity 0.15s 0.05s;
+
 	&:not(.active) {
 		display: none;
 	}
+
 	&:where(.opened) {
 		opacity   : 1;
 		transition: opacity 0.2s;
@@ -221,53 +274,55 @@
 			}
 		}
 
-		&:where(.current) {
-			> a {
-				pointer-events: none;
-			}
-		}
-
 		ul {
 			margin-inline-start: var(--popup-sub-indent);
 		}
 	}
 }
+
 .menu-simplex.with-popup-hint > ul > li > :is(ul, div) {  // Popup
-	li {
-		> button {
-			padding-inline-end: 2rem;
+	// Popup Item Button
+	li > button {
+		padding-inline-end: 2rem;
 
-			position: relative;
-			&::after {
-				content : '';
-				position: absolute;
-				width   : 0.5rem;
-				height  : 0.5rem;
+		position: relative;
+		&::after {
+			content : '';
+			position: absolute;
+			width   : 0.5rem;
+			height  : 0.5rem;
 
-				inset    : 50% 0.75rem auto auto;
-				translate: 0 -0.25rem;
+			inset    : 50% 1rem auto auto;
+			translate: 50% -50%;
 
-				clip-path : var(--bar-mark-path);
-				box-shadow: 0 0 1rem var(--bar-mark-color) inset;
-			}
+			clip-path : var(--bar-mark-path);
+			box-shadow: 0 0 1rem var(--bar-mark-color) inset;
 		}
 
-		&.opened {
-			> button::after {
+		&:where(.opened > *) {
+			&::after {
 				transform: scaleY(-1);
 			}
 		}
 	}
 }
 
-.menu-simplex > ul > li.folder > :is(ul, div) {  // Folder
+
+// -----------------------------------------------------------------------------
+
+
+.menu-simplex > ul > li.more > ul,  // 'More' Popup
+.menu-simplex > ul > li.more > div > ul {  // 'More' Popup
+	// 'More' Popup Item
 	> li {
 		> :is(ul, div) {
 			opacity   : 0;
 			transition: opacity 0.15s 0.05s;
+
 			&:not(.active) {
 				display: none;
 			}
+
 			&:where(.opened) {
 				opacity   : 1;
 				transition: opacity 0.2s;
