@@ -2,7 +2,7 @@
  * Menu Simplex (Progressively collapsing menu)
  *
  * @author Takuto Yanagida
- * @version 2023-10-04
+ * @version 2023-10-05
  */
 
 export class MenuSimplex {
@@ -40,7 +40,7 @@ export class MenuSimplex {
 	// -------------------------------------------------------------------------
 
 
-	static throttle(fn: Function): () => void {
+	private static throttle(fn: Function): () => void {
 		let isRunning: boolean;
 		function run() {
 			isRunning = false;
@@ -53,7 +53,7 @@ export class MenuSimplex {
 		};
 	}
 
-	static addHoverStateEventListener(root: HTMLElement, elms: Element[]) {
+	private static addHoverStateEventListener(root: HTMLElement, elms: Element[]) {
 		const enter = (e: PointerEvent) => {
 			const li = (e.target as HTMLElement).parentElement;
 
@@ -87,9 +87,9 @@ export class MenuSimplex {
 		}
 	}
 
-	static fixed: boolean;
+	private static fixed: boolean;
 
-	static fixBackground(enabled: boolean) {
+	private static fixBackground(enabled: boolean) {
 		if (MenuSimplex.fixed === enabled) return;
 		MenuSimplex.fixed = enabled;
 
@@ -118,7 +118,7 @@ export class MenuSimplex {
 		}
 	}
 
-	static getStylePropertyBool(elm: HTMLElement, prop: string): boolean|null {
+	private static getStylePropertyBool(elm: HTMLElement, prop: string): boolean|null {
 		let v = getComputedStyle(elm).getPropertyValue(prop).trim();
 		if (('"' === v.at(0) && '"' === v.at(-1)) || ("'" === v.at(0) && "'" === v.at(-1))) {
 			v = v.slice(1, -1);
@@ -132,7 +132,7 @@ export class MenuSimplex {
 		}
 	}
 
-	static getStylePropertyString(elm: HTMLElement, prop: string): string|null {
+	private static getStylePropertyString(elm: HTMLElement, prop: string): string|null {
 		const v = getComputedStyle(elm).getPropertyValue(prop).trim().replace(new RegExp('^\"+|\"+$', 'g'), '');
 		if (!v.length) return null;
 		return (typeof v === 'string') ? v : String(v);
@@ -192,7 +192,7 @@ export class MenuSimplex {
 		setTimeout(() => this.#divRoot.classList.add(MenuSimplex.CLS_READY), 100);
 	}
 
-	initMore(): [HTMLElement, number] {
+	private initMore(): [HTMLElement, number] {
 		let li: HTMLElement|null = null;
 		let idx = 0;
 		for (const e of Array.from(this.#ulBar.children)) {
@@ -238,7 +238,7 @@ export class MenuSimplex {
 		return [ul, idx];
 	}
 
-	initBarItems(): Item[] {
+	private initBarItems(): Item[] {
 		const its: Item[] = [];
 		const lis = Array.from(this.#ulBar.querySelectorAll(':scope > li'));
 		for (const li of lis) {
@@ -255,7 +255,7 @@ export class MenuSimplex {
 		return its;
 	}
 
-	initPanel(its: Item[]) {
+	private initPanel(its: Item[]) {
 		for (const it of its) {
 			const { li, btn, panel } = it;
 			if (!btn || !panel) continue;
@@ -302,7 +302,7 @@ export class MenuSimplex {
 		}
 	}
 
-	initOrder(its: Item[]): number[] {
+	private initOrder(its: Item[]): number[] {
 		const rev = MenuSimplex.getStylePropertyBool(this.#divRoot, MenuSimplex.CP_IS_REVERSED);
 
 		const ws = new Array(its.length);
@@ -317,7 +317,7 @@ export class MenuSimplex {
 		return order;
 	}
 
-	getWeightFromClass(li: Element, def: number): number {
+	private getWeightFromClass(li: Element, def: number): number {
 		const cs = li.className.split(' ');
 		let w: number|null = null;
 		for (const c of cs) {
@@ -328,7 +328,7 @@ export class MenuSimplex {
 		return w ?? def;
 	}
 
-	initFocusTrap(): HTMLElement {
+	private initFocusTrap(): HTMLElement {
 		const e = document.createElement('li');
 		e.className = 'focus-trap';
 		e.tabIndex = 0;
@@ -345,7 +345,7 @@ export class MenuSimplex {
 	// -------------------------------------------------------------------------
 
 
-	open(it: Item) {
+	private open(it: Item) {
 		const { li, btn, panel } = it;
 		if (!btn || !panel) return;
 
@@ -376,7 +376,7 @@ export class MenuSimplex {
 		}
 	}
 
-	adjustPanelInline(panel: HTMLElement) {
+	private adjustPanelInline(panel: HTMLElement) {
 		panel.style.transform = '';
 		panel.style.maxWidth = '';
 		let pr = panel.getBoundingClientRect();
@@ -393,7 +393,7 @@ export class MenuSimplex {
 		}
 	}
 
-	close(it: Item) {
+	private close(it: Item) {
 		const { li, btn, panel } = it;
 		if (!btn || !panel) return;
 
@@ -424,7 +424,7 @@ export class MenuSimplex {
 		}
 	}
 
-	closeAll(its: Item[], opening: HTMLElement|null = null) {
+	private closeAll(its: Item[], opening: HTMLElement|null = null) {
 		if (!this.#curIts.length) return;
 
 		for (const it of its) {
@@ -441,7 +441,7 @@ export class MenuSimplex {
 		}
 	}
 
-	doOnScroll(its: Item[]) {
+	private doOnScroll(its: Item[]) {
 		if (!this.#curIts.length || !this.#curIts[0].panel) {
 			return;
 		}
@@ -454,7 +454,7 @@ export class MenuSimplex {
 		}
 	}
 
-	alignItems(its: Item[], order: number[]) {
+	private alignItems(its: Item[], order: number[]) {
 		this.setMaxWidth();
 		const inBar = this.calcItemPlace(its, order);
 		its[this.#moreIdx].li.style.display = inBar[this.#moreIdx] ? '' : 'none';
@@ -487,7 +487,7 @@ export class MenuSimplex {
 		}
 	}
 
-	setMaxWidth() {
+	private setMaxWidth() {
 		const p = this.#divRoot.parentElement;
 		if (p) {
 			const s = getComputedStyle(p);
@@ -496,7 +496,7 @@ export class MenuSimplex {
 		}
 	}
 
-	calcItemPlace(its: Item[], order: number[]): boolean[] {
+	private calcItemPlace(its: Item[], order: number[]): boolean[] {
 		const inBar = new Array(its.length);
 		switch (MenuSimplex.getStylePropertyString(this.#divRoot, MenuSimplex.CP_COLLAPSED)) {
 			case 'never':
@@ -530,7 +530,7 @@ export class MenuSimplex {
 		return inBar;
 	}
 
-	calcBarWidth(): number {
+	private calcBarWidth(): number {
 		this.#ulBar.style.width = '0';
 		let w = Math.floor(this.#divRoot.getBoundingClientRect().width);
 
@@ -547,7 +547,7 @@ export class MenuSimplex {
 		return w;
 	}
 
-	calcBarGap(): number {
+	private calcBarGap(): number {
 		const s = getComputedStyle(this.#ulBar);
 		const g = parseInt(s.columnGap, 10);
 		return Number.isNaN(g) ? 0 : g;
