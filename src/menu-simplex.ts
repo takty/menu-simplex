@@ -175,17 +175,17 @@ export class MenuSimplex {
 		const allLis = Array.from(this.#ulBar.querySelectorAll('li'));
 		MenuSimplex.addHoverStateEventListener(this.#divRoot, allLis);
 
+		const onResize = () => {
+			if (this.#skipResize) {
+				this.#skipResize = false;
+				return;
+			}
+			this.closeAll(its);
+			this.alignItems(its, order);
+		};
+		requestAnimationFrame(onResize);
 		setTimeout(() => {
-			const ro = new ResizeObserver(
-				() => requestAnimationFrame(() => {
-					if (this.#skipResize) {
-						this.#skipResize = false;
-						return;
-					}
-					this.closeAll(its);
-					this.alignItems(its, order);
-				})
-			);
+			const ro = new ResizeObserver(() => requestAnimationFrame(onResize));
 			ro.observe(this.#divRoot);
 			ro.observe(this.#divRoot.parentElement as HTMLElement);
 		}, 10);
