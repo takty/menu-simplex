@@ -63,15 +63,15 @@
 		user-select: none;
 	}
 
-	a {
+	:where(a) {
 		text-decoration: none;
 	}
 
-	.current > a {
+	:where(.current > a) {
 		pointer-events: none;
 	}
 
-	button {
+	:where(button) {
 		appearance   : none;
 		padding      : 0;
 		border-radius: 0;
@@ -81,7 +81,7 @@
 		color        : inherit;
 	}
 
-	ul {
+	:where(ul) {
 		list-style-type: none;
 	}
 
@@ -109,32 +109,30 @@
 // -----------------------------------------------------------------------------
 
 
-.menu-simplex .menu-bar {
-	max-height: var(--bar-item-height);
+.menu-simplex {
+	:where(.menu-bar) {
+		max-height: var(--bar-item-height);
 
-	display  : inline-flex;
-	flex-wrap: nowrap;
+		display  : inline-flex;
+		flex-wrap: nowrap;
+	}
 
-	> li {  // Bar item
-		position: relative;
+	:where(.menu-bar > li > :is(a, button)) {
+		display        : flex;
+		align-items    : center;
+		justify-content: center;
 
-		> :is(a, button) {
-			display        : flex;
-			align-items    : center;
-			justify-content: center;
+		width     : 100%;
+		min-width : var(--bar-item-width);
+		min-height: var(--bar-item-height);
+		padding   : var(--bar-item-padding);
 
-			width     : 100%;
-			min-width : var(--bar-item-width);
-			min-height: var(--bar-item-height);
-			padding   : var(--bar-item-padding);
-
-			white-space: nowrap;
-		}
+		white-space: nowrap;
 	}
 }
 
-.menu-simplex.with-popup-hint .menu-bar {
-	> li > button {
+.menu-simplex.with-popup-hint {
+	:where(.menu-bar > li > button) {
 		padding-inline-end: 2rem;
 
 		position: relative;
@@ -169,8 +167,8 @@
 	}
 }
 
-.menu-simplex.with-more-hint .menu-bar {
-	> li > button {
+.menu-simplex.with-more-hint {
+	:where(.menu-bar > li > button) {
 		&:where(.more > *) {
 			padding  : 0;
 			min-width: var(--bar-item-width-more);
@@ -222,41 +220,44 @@
 // -----------------------------------------------------------------------------
 
 
-.menu-simplex .menu-bar > li > .panel {
-	position          : absolute;
-	inset-inline-start: 0;
-	inset-block-start : calc(100% + var(--panel-offset));
-	z-index           : 1000;
-
-	&.end   { inset-inline-end  : 0; }
-	&.start { inset-inline-start: 0; }
-
-	background-color: var(--panel-bg-color);
-	box-shadow      : var(--panel-shadow);
-
-	opacity   : 0;
-	transition: opacity 0.15s 0.05s;
-
-	&:not(.active) {
-		display: none;
+.menu-simplex {
+	:where(.menu-bar > li) {
+		position: relative;
 	}
 
-	&:where(.opened) {
-		opacity   : 1;
-		transition: opacity 0.2s;
+	:where(.menu-bar > li > .panel) {
+		position          : absolute;
+		inset-inline-start: 0;
+		inset-block-start : calc(100% + var(--panel-offset));
+		z-index           : 1000;
+
+		background-color: var(--panel-bg-color);
+		box-shadow      : var(--panel-shadow);
+
+		opacity   : 0;
+		transition: opacity 0.15s 0.05s;
+
+		&:where(:not(.active)) {
+			display: none;
+		}
+
+		&:where(.opened) {
+			opacity   : 1;
+			transition: opacity 0.2s;
+		}
 	}
 }
 
-.menu-simplex :is(.menu-popup, .menu-more) {
-	display        : flex;
-	justify-content: center;
-	flex-direction : column;
+.menu-simplex {
+	:where(.menu-popup, .menu-more) {
+		display        : flex;
+		justify-content: center;
+		flex-direction : column;
 
-	width    : max-content;
-	max-width: var(--panel-max-width);
+		width    : max-content;
+		max-width: var(--panel-max-width);
 
-	li {
-		> :is(a, button) {
+		:where(li > :is(a, button)) {
 			display        : flex;
 			align-items    : center;
 			justify-content: flex-start;
@@ -272,33 +273,35 @@
 			}
 		}
 
-		ul {
+		:where(li ul) {
 			margin-inline-start: var(--panel-sub-indent);
 		}
 	}
 }
 
-.menu-simplex.with-popup-hint :is(.menu-popup, .menu-more) {
-	li > button {
-		padding-inline-end: 2rem;
+.menu-simplex.with-popup-hint {
+	:where(.menu-popup, .menu-more) {
+		:where(li > button) {
+			padding-inline-end: 2rem;
 
-		position: relative;
-		&::after {
-			content : '';
-			position: absolute;
-			width   : 0.5rem;
-			height  : 0.5rem;
-
-			inset    : 50% 1rem auto auto;
-			translate: 50% -50%;
-
-			clip-path : var(--bar-mark-path);
-			box-shadow: 0 0 1rem var(--bar-mark-color) inset;
-		}
-
-		&:where(.opened > *) {
+			position: relative;
 			&::after {
-				transform: scaleY(-1);
+				content : '';
+				position: absolute;
+				width   : 0.5rem;
+				height  : 0.5rem;
+
+				inset    : 50% 1rem auto auto;
+				translate: 50% -50%;
+
+				clip-path : var(--bar-mark-path);
+				box-shadow: 0 0 1rem var(--bar-mark-color) inset;
+			}
+
+			&:where(.opened > *) {
+				&::after {
+					transform: scaleY(-1);
+				}
 			}
 		}
 	}
@@ -308,20 +311,18 @@
 // -----------------------------------------------------------------------------
 
 
-.menu-simplex .menu-more {
-	> li {
-		> :is(ul, div) {
-			opacity   : 0;
-			transition: opacity 0.15s 0.05s;
+.menu-simplex {
+	:where(.menu-more > li > .panel) {
+		opacity   : 0;
+		transition: opacity 0.15s 0.05s;
 
-			&:not(.active) {
-				display: none;
-			}
+		&:where(:not(.active)) {
+			display: none;
+		}
 
-			&:where(.opened) {
-				opacity   : 1;
-				transition: opacity 0.2s;
-			}
+		&:where(.opened) {
+			opacity   : 1;
+			transition: opacity 0.2s;
 		}
 	}
 }
