@@ -2,7 +2,7 @@
  * Menu Simplex
  *
  * @author Takuto Yanagida
- * @version 2023-09-26
+ * @version 2023-10-04
  */
 
 .menu-simplex {
@@ -16,15 +16,15 @@
 	--bar-mark-path : polygon(0% 20%, 100% 20%, 50% 95%);
 	--bar-mark-width: 1px;
 
-	--popup-offset      : 2px;
-	--popup-bg-color    : #fff;
-	--popup-shadow      : 0 4px 8px 0 #0004;
-	--popup-max-width   : 24rem;
-	--popup-sub-indent  : 1rem;
+	--panel-offset      : 2px;
+	--panel-bg-color    : #fff;
+	--panel-shadow      : 0 4px 8px 0 #0004;
+	--panel-max-width   : 24rem;
+	--panel-sub-indent  : 1rem;
 
-	--popup-item-width  : unset;
-	--popup-item-height : 3rem;
-	--popup-item-padding: 0.25rem 1rem;
+	--panel-item-width  : unset;
+	--panel-item-height : 3rem;
+	--panel-item-padding: 0.25rem 1rem;
 
 	--is-closed-auto     : 'true';   // 'true' or 'false'. Default is 'true'.
 	--is-background-fixed: 'false';  // 'true' or 'false'. Default is 'false'.
@@ -109,7 +109,7 @@
 // -----------------------------------------------------------------------------
 
 
-.menu-simplex > ul {  // Bar
+.menu-simplex .menu-bar {
 	max-height: var(--bar-item-height);
 
 	display  : inline-flex;
@@ -133,8 +133,7 @@
 	}
 }
 
-.menu-simplex.with-popup-hint > ul {  // Bar
-	// Bar Item Button
+.menu-simplex.with-popup-hint .menu-bar {
 	> li > button {
 		padding-inline-end: 2rem;
 
@@ -170,8 +169,7 @@
 	}
 }
 
-.menu-simplex.with-more-hint > ul {  // Bar
-	// Bar Item Button
+.menu-simplex.with-more-hint .menu-bar {
 	> li > button {
 		&:where(.more > *) {
 			padding  : 0;
@@ -190,10 +188,10 @@
 				content : '';
 				position: absolute;
 				width   : 1rem;
-				height  : var(--bar-mark-width);
+				height  : 0;
 
-				background-color: var(--bar-mark-color);
-				clip-path       : none;
+				border-block-start: var(--bar-mark-width) solid var(--bar-mark-color);
+				clip-path         : none;
 
 				inset: calc(50% - var(--bar-mark-width) * 0.5) auto auto calc(50% - 1rem * 0.5);
 			}
@@ -224,7 +222,18 @@
 // -----------------------------------------------------------------------------
 
 
-.menu-simplex > ul > li > :is(ul, div) {  // Popup
+.menu-simplex .menu-bar > li > .panel {
+	position          : absolute;
+	inset-inline-start: 0;
+	inset-block-start : calc(100% + var(--panel-offset));
+	z-index           : 1000;
+
+	&.end   { inset-inline-end  : 0; }
+	&.start { inset-inline-start: 0; }
+
+	background-color: var(--panel-bg-color);
+	box-shadow      : var(--panel-shadow);
+
 	opacity   : 0;
 	transition: opacity 0.15s 0.05s;
 
@@ -238,35 +247,24 @@
 	}
 }
 
-.menu-simplex > ul > li > :is(ul, div) {  // Popup
-	position          : absolute;
-	inset-inline-start: 0;
-	inset-block-start : calc(100% + var(--popup-offset));
-	z-index           : 1000;
-
-	&.end   { inset-inline-end  : 0; }
-	&.start { inset-inline-start: 0; }
-
-	background-color: var(--popup-bg-color);
-	box-shadow      : var(--popup-shadow);
-
+.menu-simplex :is(.menu-popup, .menu-more) {
 	display        : flex;
 	justify-content: center;
 	flex-direction : column;
 
 	width    : max-content;
-	max-width: var(--popup-max-width);
+	max-width: var(--panel-max-width);
 
-	li {  // Popup item
+	li {
 		> :is(a, button) {
 			display        : flex;
 			align-items    : center;
 			justify-content: flex-start;
 
 			width     : 100%;
-			min-width : var(--popup-item-width);
-			min-height: var(--popup-item-height);
-			padding   : var(--popup-item-padding);
+			min-width : var(--panel-item-width);
+			min-height: var(--panel-item-height);
+			padding   : var(--panel-item-padding);
 
 			:where(div, span) {
 				display   : inline-block;
@@ -275,13 +273,12 @@
 		}
 
 		ul {
-			margin-inline-start: var(--popup-sub-indent);
+			margin-inline-start: var(--panel-sub-indent);
 		}
 	}
 }
 
-.menu-simplex.with-popup-hint > ul > li > :is(ul, div) {  // Popup
-	// Popup Item Button
+.menu-simplex.with-popup-hint :is(.menu-popup, .menu-more) {
 	li > button {
 		padding-inline-end: 2rem;
 
@@ -311,9 +308,7 @@
 // -----------------------------------------------------------------------------
 
 
-.menu-simplex > ul > li.more > ul,  // 'More' Popup
-.menu-simplex > ul > li.more > div > ul {  // 'More' Popup
-	// 'More' Popup Item
+.menu-simplex .menu-more {
 	> li {
 		> :is(ul, div) {
 			opacity   : 0;

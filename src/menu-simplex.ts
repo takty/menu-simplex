@@ -2,12 +2,20 @@
  * Menu Simplex (Progressively collapsing menu)
  *
  * @author Takuto Yanagida
- * @version 2023-09-26
+ * @version 2023-10-04
  */
 
 export class MenuSimplex {
 
 	static NS = 'menu-simplex';
+
+	static CLS_PANEL       = 'panel';
+	static CLS_PANEL_POPUP = 'panel-popup';
+	static CLS_PANEL_MORE  = 'panel-more';
+	static CLS_MENU        = 'menu';
+	static CLS_MENU_BAR    = 'menu-bar';
+	static CLS_MENU_POPUP  = 'menu-popup';
+	static CLS_MENU_MORE   = 'menu-more';
 
 	static CP_IS_CLOSED_AUTO = '--is-closed-auto';
 	static CP_IS_BG_FIXED    = '--is-background-fixed';
@@ -18,11 +26,13 @@ export class MenuSimplex {
 	static CLS_MORE    = 'more';
 	static CLS_CURRENT = 'current';
 
-	static CLS_READY          = 'ready';
-	static CLS_HOVER          = 'hover';
-	static CLS_HOVER_ANCESTOR = 'hover-ancestor';
-	static CLS_ACTIVE         = 'active';
-	static CLS_OPENED         = 'opened';
+	static CLS_READY            = 'ready';
+	static CLS_HOVER            = 'hover';
+	static CLS_HOVER_ANCESTOR   = 'hover-ancestor';
+	static CLS_ACTIVE           = 'active';
+	static CLS_OPENED           = 'opened';
+	static CLS_IS_COLLAPSED     = 'is-collapsed';
+	static CLS_IS_COLLAPSED_ALL = 'is-collapsed-all';
 
 	static CP_MAX_WIDTH = '--max-width';
 
@@ -150,6 +160,7 @@ export class MenuSimplex {
 		this.#divRoot = divRoot as HTMLElement;
 		this.#ulBar   = this.#divRoot.getElementsByTagName('ul')[0];
 		if (!this.#ulBar) throw new DOMException();
+		this.#ulBar.classList.add(MenuSimplex.CLS_MENU, MenuSimplex.CLS_MENU_BAR);
 
 		if (!this.#divRoot.classList.contains(MenuSimplex.NS)) {
 			this.#divRoot.classList.add(MenuSimplex.NS);
@@ -157,7 +168,7 @@ export class MenuSimplex {
 
 		[this.#ulMore, this.#moreIdx] = this.initMore();
 		const its = this.initBarItems();
-		this.initPopup(its);
+		this.initPanel(its);
 		const order = this.initOrder(its);
 		this.#liFocusTrap = this.initFocusTrap();
 
@@ -214,7 +225,6 @@ export class MenuSimplex {
 		let ul = Array.from(uls).find(e => !e.children.length) as HTMLElement;
 		if (!ul) {
 			ul = document.createElement('ul');
-			ul.classList.add('menu');
 			const div = li.querySelector(':scope > div');
 			if (div) {
 				div.appendChild(ul);
@@ -222,6 +232,9 @@ export class MenuSimplex {
 				li.appendChild(ul);
 			}
 		}
+		ul.classList.add(MenuSimplex.CLS_MENU, MenuSimplex.CLS_MENU_MORE);
+		const panel = (ul.parentElement === li) ? ul : (ul.parentElement as HTMLElement);
+		panel.classList.add(MenuSimplex.CLS_PANEL, MenuSimplex.CLS_PANEL_MORE);
 		return [ul, idx];
 	}
 
@@ -230,27 +243,32 @@ export class MenuSimplex {
 		const lis = Array.from(this.#ulBar.querySelectorAll(':scope > li'));
 		for (const li of lis) {
 			const btn = li.querySelector(':scope > button') as HTMLElement;
-			const popup = li.querySelector(':scope > :is(ul, div)') as HTMLElement;
+			const panel = li.querySelector(':scope > :is(ul, div)') as HTMLElement;
+			if (panel && !li.classList.contains(MenuSimplex.CLS_MORE)) {
+				panel.classList.add(MenuSimplex.CLS_PANEL, MenuSimplex.CLS_PANEL_POPUP);
+				const menu = ('UL' === panel.tagName) ? panel : panel.querySelector(':scope > ul') as HTMLElement;
+				menu.classList.add(MenuSimplex.CLS_MENU, MenuSimplex.CLS_MENU_POPUP);
+			}
 			const width = (li as HTMLElement).offsetWidth;
-			its.push(new Item(li as HTMLElement, btn, popup, width));
+			its.push(new Item(li as HTMLElement, btn, panel, width));
 		}
 		return its;
 	}
 
-	initPopup(its: Item[]) {
+	initPanel(its: Item[]) {
 		for (const it of its) {
-			const { li, btn, popup } = it;
-			if (!btn || !popup) continue;
+			const { li, btn, panel } = it;
+			if (!btn || !panel) continue;
 
 			btn.setAttribute('area-expanded', 'false');
-			if (!popup.id) {
+			if (!panel.id) {
 				const id = btn.id ? btn.id : (li.id ? li.id : '');
 				if (id) {
-					popup.id = id + '-sub';
+					panel.id = id + '-sub';
 				}
 			}
-			if (popup.id) {
-				btn.setAttribute('area-controls', popup.id);
+			if (panel.id) {
+				btn.setAttribute('area-controls', panel.id);
 			}
 			btn.addEventListener('click', e => {
 				if (btn.classList.contains(MenuSimplex.CLS_OPENED)) {
@@ -328,25 +346,25 @@ export class MenuSimplex {
 
 
 	open(it: Item) {
-		const { li, btn, popup } = it;
-		if (!btn || !popup) return;
+		const { li, btn, panel } = it;
+		if (!btn || !panel) return;
 
 		li.classList.add(MenuSimplex.CLS_OPENED);
 		btn.classList.add(MenuSimplex.CLS_OPENED);
 		btn.setAttribute('area-expanded', 'true');
-		popup.classList.add(MenuSimplex.CLS_ACTIVE);
+		panel.classList.add(MenuSimplex.CLS_ACTIVE);
 
-		setTimeout(() => popup.classList.add(MenuSimplex.CLS_OPENED), 0);
+		setTimeout(() => panel.classList.add(MenuSimplex.CLS_OPENED), 0);
 		this.#curIts.push(it);
 
-		popup.style.transform = '';
-		if (this.#curIts[0].popup) {
-			this.adjustPopupInline(this.#curIts[0].popup);
+		panel.style.transform = '';
+		if (this.#curIts[0].panel) {
+			this.adjustPanelInline(this.#curIts[0].panel);
 		}
 		this.#scrollY = window.scrollY;
 
 		if (1 === this.#curIts.length) {
-			const ul = ('UL' === popup.tagName) ? popup : popup.getElementsByTagName('ul')?.[0];
+			const ul = ('UL' === panel.tagName) ? panel : panel.getElementsByTagName('ul')?.[0];
 			if (ul) {
 				ul.appendChild(this.#liFocusTrap);
 			}
@@ -358,43 +376,43 @@ export class MenuSimplex {
 		}
 	}
 
-	adjustPopupInline(popup: HTMLElement) {
-		popup.style.transform = '';
-		popup.style.maxWidth = '';
-		let pr = popup.getBoundingClientRect();
+	adjustPanelInline(panel: HTMLElement) {
+		panel.style.transform = '';
+		panel.style.maxWidth = '';
+		let pr = panel.getBoundingClientRect();
 		const rr = this.#divRoot.getBoundingClientRect();
 		if (rr.width < pr.width) {
-			popup.style.maxWidth = `${rr.width}px`;
-			pr = popup.getBoundingClientRect();
+			panel.style.maxWidth = `${rr.width}px`;
+			pr = panel.getBoundingClientRect();
 		}
 		if (rr.right < pr.right) {
-			popup.style.transform = `translateX(${rr.right - pr.right}px)`;
+			panel.style.transform = `translateX(${rr.right - pr.right}px)`;
 		}
 		if (pr.left < rr.left) {
-			popup.style.transform = `translateX(${pr.left - rr.left}px)`;
+			panel.style.transform = `translateX(${pr.left - rr.left}px)`;
 		}
 	}
 
 	close(it: Item) {
-		const { li, btn, popup } = it;
-		if (!btn || !popup) return;
+		const { li, btn, panel } = it;
+		if (!btn || !panel) return;
 
 		li.classList.remove(MenuSimplex.CLS_OPENED);
 		btn.classList.remove(MenuSimplex.CLS_OPENED);
 		btn.setAttribute('area-expanded', 'false');
-		popup.classList.remove(MenuSimplex.CLS_OPENED);
+		panel.classList.remove(MenuSimplex.CLS_OPENED);
 
 		setTimeout(() => {
-			popup.classList.remove(MenuSimplex.CLS_ACTIVE);
+			panel.classList.remove(MenuSimplex.CLS_ACTIVE);
 			if (this.#curIts.length) {
-				const { popup } = this.#curIts[0];
-				if (popup) this.adjustPopupInline(popup);
+				const { panel } = this.#curIts[0];
+				if (panel) this.adjustPanelInline(panel);
 			}
 		}, 200);
 		this.#curIts.pop();
 
 		if (0 === this.#curIts.length) {
-			const ul = ('UL' === popup.tagName) ? popup : popup.getElementsByTagName('ul')?.[0];
+			const ul = ('UL' === panel.tagName) ? panel : panel.getElementsByTagName('ul')?.[0];
 			if (ul && this.#liFocusTrap.parentElement === ul) {
 				ul.removeChild(this.#liFocusTrap);
 			}
@@ -424,10 +442,10 @@ export class MenuSimplex {
 	}
 
 	doOnScroll(its: Item[]) {
-		if (!this.#curIts.length || !this.#curIts[0].popup) {
+		if (!this.#curIts.length || !this.#curIts[0].panel) {
 			return;
 		}
-		const bcr = this.#curIts[0].popup.getBoundingClientRect();
+		const bcr = this.#curIts[0].panel.getBoundingClientRect();
 		if (
 			bcr.bottom < 0 ||  // When not fixed
 			(0 < bcr.top && bcr.bottom < Math.abs(window.scrollY - this.#scrollY))  // When fixed
@@ -441,12 +459,25 @@ export class MenuSimplex {
 		const inBar = this.calcItemPlace(its, order);
 		its[this.#moreIdx].li.style.display = inBar[this.#moreIdx] ? '' : 'none';
 
+		if (inBar[this.#moreIdx]) {
+			this.#divRoot.classList.add(MenuSimplex.CLS_IS_COLLAPSED);
+		} else {
+			this.#divRoot.classList.remove(MenuSimplex.CLS_IS_COLLAPSED);
+		}
+		if (inBar.every((e, i) => (i === this.#moreIdx || !e))) {
+			this.#divRoot.classList.add(MenuSimplex.CLS_IS_COLLAPSED_ALL);
+		} else {
+			this.#divRoot.classList.remove(MenuSimplex.CLS_IS_COLLAPSED_ALL);
+		}
+
 		let prevElm = this.#ulBar.firstChild as HTMLElement;
 		for (let i = 0; i < its.length; i += 1) {
 			const { li } = its[i];
 			if (inBar[i]) {
 				if (li.parentElement === this.#ulBar) {
+					li.style.flexGrow = '0';
 					its[i].width = li.offsetWidth;
+					li.style.flexGrow = '';
 				}
 				this.#ulBar.insertBefore(li, prevElm.nextElementSibling);
 				prevElm = li;
@@ -526,10 +557,10 @@ export class MenuSimplex {
 
 class Item {
 
-	constructor(public li:HTMLElement, public btn:HTMLElement|null, public popup:HTMLElement|null, public width: number) {
+	constructor(public li:HTMLElement, public btn:HTMLElement|null, public panel:HTMLElement|null, public width: number) {
 		this.li    = li;
 		this.btn   = btn;
-		this.popup = popup;
+		this.panel = panel;
 		this.width = width;
 	}
 

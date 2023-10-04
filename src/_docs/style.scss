@@ -2,10 +2,10 @@
  * Styles for Sample
  *
  * @author Takuto Yanagida
- * @version 2023-09-20
+ * @version 2023-10-04
  */
 
-@use "sass:math";
+@use 'sass:math';
 
 // * { outline: 1px solid rgba(red, 0.5); }
 // *::before, *::after { outline: 1px solid rgba(green, 0.5); }
@@ -87,5 +87,12 @@ dt {
 
 	&.fixed-width-element {
 		display: flex;
+	}
+
+	.is-collapsed > ul {
+		width: 100%;
+		> li {
+			flex-grow: 1;
+		}
 	}
 }
