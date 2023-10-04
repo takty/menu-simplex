@@ -31,13 +31,11 @@
 	--is-reversed        : 'false';  // 'true' or 'false'. Default is 'false'.
 	--more-position      : 'end';    // 'start' or 'end'. Default is 'end'.
 	--collapsed          : 'auto';   // 'auto', 'always' or 'never'. Default is 'auto'.
-}
 
 
-// -----------------------------------------------------------------------------
+	// -------------------------------------------------------------------------
 
 
-.menu-simplex {
 	position  : relative;
 	box-sizing: border-box;
 
@@ -103,18 +101,20 @@
 		overflow-x: visible;
 		opacity   : 1;
 	}
-}
 
 
-// -----------------------------------------------------------------------------
+	// -------------------------------------------------------------------------
 
 
-.menu-simplex {
 	:where(.menu-bar) {
 		max-height: var(--bar-item-height);
 
 		display  : inline-flex;
 		flex-wrap: nowrap;
+	}
+
+	:where(.menu-bar > li) {
+		position: relative;
 	}
 
 	:where(.menu-bar > li > :is(a, button)) {
@@ -129,7 +129,88 @@
 
 		white-space: nowrap;
 	}
+
+	:where(.menu-bar > li > .panel) {
+		position          : absolute;
+		inset-inline-start: 0;
+		inset-block-start : calc(100% + var(--panel-offset));
+		z-index           : 1000;
+
+		background-color: var(--panel-bg-color);
+		box-shadow      : var(--panel-shadow);
+
+		opacity   : 0;
+		transition: opacity 0.15s 0.05s;
+
+		&:where(:not(.active)) {
+			display: none;
+		}
+
+		&:where(.opened) {
+			opacity   : 1;
+			transition: opacity 0.2s;
+		}
+	}
+
+
+	// -------------------------------------------------------------------------
+
+
+	:where(.menu-popup, .menu-more) {
+		display        : flex;
+		justify-content: center;
+		flex-direction : column;
+
+		width    : max-content;
+		max-width: var(--panel-max-width);
+
+		:where(li > :is(a, button)) {
+			display        : flex;
+			align-items    : center;
+			justify-content: flex-start;
+
+			width     : 100%;
+			min-width : var(--panel-item-width);
+			min-height: var(--panel-item-height);
+			padding   : var(--panel-item-padding);
+
+			:where(div, span) {
+				display   : inline-block;
+				text-align: left;
+			}
+		}
+
+		:where(li ul) {
+			margin-inline-start: var(--panel-sub-indent);
+		}
+	}
+
+	:where(.menu-more .menu-popup) {
+		width: auto;
+	}
+
+
+	// -------------------------------------------------------------------------
+
+
+	:where(.menu-more > li > .panel) {
+		opacity   : 0;
+		transition: opacity 0.15s 0.05s;
+
+		&:where(:not(.active)) {
+			display: none;
+		}
+
+		&:where(.opened) {
+			opacity   : 1;
+			transition: opacity 0.2s;
+		}
+	}
 }
+
+
+// -----------------------------------------------------------------------------
+
 
 .menu-simplex.with-popup-hint {
 	:where(.menu-bar > li > button) {
@@ -216,69 +297,6 @@
 	}
 }
 
-
-// -----------------------------------------------------------------------------
-
-
-.menu-simplex {
-	:where(.menu-bar > li) {
-		position: relative;
-	}
-
-	:where(.menu-bar > li > .panel) {
-		position          : absolute;
-		inset-inline-start: 0;
-		inset-block-start : calc(100% + var(--panel-offset));
-		z-index           : 1000;
-
-		background-color: var(--panel-bg-color);
-		box-shadow      : var(--panel-shadow);
-
-		opacity   : 0;
-		transition: opacity 0.15s 0.05s;
-
-		&:where(:not(.active)) {
-			display: none;
-		}
-
-		&:where(.opened) {
-			opacity   : 1;
-			transition: opacity 0.2s;
-		}
-	}
-}
-
-.menu-simplex {
-	:where(.menu-popup, .menu-more) {
-		display        : flex;
-		justify-content: center;
-		flex-direction : column;
-
-		width    : max-content;
-		max-width: var(--panel-max-width);
-
-		:where(li > :is(a, button)) {
-			display        : flex;
-			align-items    : center;
-			justify-content: flex-start;
-
-			width     : 100%;
-			min-width : var(--panel-item-width);
-			min-height: var(--panel-item-height);
-			padding   : var(--panel-item-padding);
-
-			:where(div, span) {
-				display   : inline-block;
-				text-align: left;
-			}
-		}
-
-		:where(li ul) {
-			margin-inline-start: var(--panel-sub-indent);
-		}
-	}
-}
-
 .menu-simplex.with-popup-hint {
 	:where(.menu-popup, .menu-more) {
 		:where(li > button) {
@@ -303,26 +321,6 @@
 					transform: scaleY(-1);
 				}
 			}
-		}
-	}
-}
-
-
-// -----------------------------------------------------------------------------
-
-
-.menu-simplex {
-	:where(.menu-more > li > .panel) {
-		opacity   : 0;
-		transition: opacity 0.15s 0.05s;
-
-		&:where(:not(.active)) {
-			display: none;
-		}
-
-		&:where(.opened) {
-			opacity   : 1;
-			transition: opacity 0.2s;
 		}
 	}
 }
