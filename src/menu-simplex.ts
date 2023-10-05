@@ -363,9 +363,11 @@ export class MenuSimplex {
 		this.#scrollY = window.scrollY;
 
 		if (1 === this.#curIts.length) {
-			const ul = ('UL' === panel.tagName) ? panel : panel.getElementsByTagName('ul')?.[0];
-			if (ul) {
-				ul.appendChild(this.#liFocusTrap);
+			if(li.classList.contains(MenuSimplex.CLS_MORE)) {
+				this.#ulMore.appendChild(this.#liFocusTrap);
+			} else {
+				const ul = ('UL' === panel.tagName) ? panel : panel.getElementsByTagName('ul')?.[0];
+				ul?.appendChild(this.#liFocusTrap);
 			}
 		}
 
