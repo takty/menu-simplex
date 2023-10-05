@@ -183,7 +183,6 @@ export class MenuSimplex {
 			this.closeAll(its);
 			this.alignItems(its, order);
 		};
-		requestAnimationFrame(onResize);
 		setTimeout(() => {
 			const ro = new ResizeObserver(() => requestAnimationFrame(onResize));
 			ro.observe(this.#divRoot);
@@ -249,8 +248,7 @@ export class MenuSimplex {
 				const menu = ('UL' === panel.tagName) ? panel : panel.querySelector(':scope > ul') as HTMLElement;
 				menu.classList.add(MenuSimplex.CLS_MENU, MenuSimplex.CLS_MENU_POPUP);
 			}
-			const width = (li as HTMLElement).offsetWidth;
-			its.push(new Item(li as HTMLElement, btn, panel, width));
+			its.push(new Item(li as HTMLElement, btn, panel, 0));
 		}
 		return its;
 	}
@@ -511,7 +509,9 @@ export class MenuSimplex {
 				inBar[this.#moreIdx] = true;
 				return inBar;
 		}
-
+		for (let i = 0; i < its.length; i += 1) {
+			if (0 === its[i].width) its[i].width = its[i].li.offsetWidth;
+		}
 		const gap  = this.calcBarGap();
 		const sumW = its.reduce((s: number, v: Item) => s + v.width, 0) + (gap * (its.length - 1)) - (its[this.#moreIdx].width + gap);
 		let barW   = this.calcBarWidth();
