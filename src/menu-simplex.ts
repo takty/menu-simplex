@@ -458,17 +458,7 @@ export class MenuSimplex {
 		this.setMaxWidth();
 		const inBar = this.calcItemPlace(its, order);
 		its[this.#moreIdx].li.style.display = inBar[this.#moreIdx] ? '' : 'none';
-
-		if (inBar[this.#moreIdx]) {
-			this.#divRoot.classList.add(MenuSimplex.CLS_IS_COLLAPSED);
-		} else {
-			this.#divRoot.classList.remove(MenuSimplex.CLS_IS_COLLAPSED);
-		}
-		if (inBar.every((e, i) => (i === this.#moreIdx || !e))) {
-			this.#divRoot.classList.add(MenuSimplex.CLS_IS_COLLAPSED_ALL);
-		} else {
-			this.#divRoot.classList.remove(MenuSimplex.CLS_IS_COLLAPSED_ALL);
-		}
+		this.setCollapsedState(inBar);
 
 		let prevElm = this.#ulBar.firstChild as HTMLElement;
 		for (let i = 0; i < its.length; i += 1) {
@@ -493,6 +483,19 @@ export class MenuSimplex {
 			const s = getComputedStyle(p);
 			const w = p.clientWidth - (parseFloat(s.paddingLeft) + parseFloat(s.paddingRight));
 			this.#divRoot.style.setProperty(MenuSimplex.CP_MAX_WIDTH, `${Math.floor(w)}px`);
+		}
+	}
+
+	private setCollapsedState(inBar: boolean[]) {
+		if (inBar[this.#moreIdx]) {
+			this.#divRoot.classList.add(MenuSimplex.CLS_IS_COLLAPSED);
+		} else {
+			this.#divRoot.classList.remove(MenuSimplex.CLS_IS_COLLAPSED);
+		}
+		if (inBar.every((e, i) => (i === this.#moreIdx || !e))) {
+			this.#divRoot.classList.add(MenuSimplex.CLS_IS_COLLAPSED_ALL);
+		} else {
+			this.#divRoot.classList.remove(MenuSimplex.CLS_IS_COLLAPSED_ALL);
 		}
 	}
 
