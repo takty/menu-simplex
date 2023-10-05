@@ -16,6 +16,7 @@ export class MenuSimplex {
 	static CLS_MENU_BAR    = 'menu-bar';
 	static CLS_MENU_POPUP  = 'menu-popup';
 	static CLS_MENU_MORE   = 'menu-more';
+	static CLS_FOCUS_TRAP  = 'focus-trap';
 
 	static CP_IS_CLOSED_AUTO = '--is-closed-auto';
 	static CP_IS_BG_FIXED    = '--is-background-fixed';
@@ -328,8 +329,8 @@ export class MenuSimplex {
 
 	private initFocusTrap(): HTMLElement {
 		const e = document.createElement('li');
-		e.className = 'focus-trap';
-		e.tabIndex = 0;
+		e.className = MenuSimplex.CLS_FOCUS_TRAP;
+		e.tabIndex  = 0;
 		e.addEventListener('focus', () => {
 			if (this.#curIts.length) {
 				const { btn } = this.#curIts[0];
