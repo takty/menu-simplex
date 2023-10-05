@@ -57,10 +57,10 @@ export class MenuSimplex {
 		const enter = (e: PointerEvent) => {
 			const li = (e.target as HTMLElement).parentElement;
 
-			if (li && e.pointerType === 'mouse' && !li.classList.contains(MenuSimplex.CLS_CURRENT)) {
+			if (li && 'mouse' === e.pointerType && !li.classList.contains(MenuSimplex.CLS_CURRENT)) {
 				li.classList.add(MenuSimplex.CLS_HOVER);
 				for (let elm = li.parentElement; elm && elm !== root; elm = elm.parentElement) {
-					if (elm.tagName === 'LI') {
+					if ('LI' === elm.tagName) {
 						elm.classList.add(MenuSimplex.CLS_HOVER_ANCESTOR);
 					}
 				}
@@ -69,10 +69,10 @@ export class MenuSimplex {
 		const leave = (e: PointerEvent) => {
 			const li = (e.target as HTMLElement).parentElement;
 
-			if (li && e.pointerType === 'mouse' && !li.classList.contains(MenuSimplex.CLS_CURRENT)) {
+			if (li && 'mouse' === e.pointerType && !li.classList.contains(MenuSimplex.CLS_CURRENT)) {
 				li.classList.remove(MenuSimplex.CLS_HOVER);
 				for (let elm = li.parentElement; elm && elm !== root; elm = elm.parentElement) {
-					if (elm.tagName === 'LI') {
+					if ('LI' === elm.tagName) {
 						elm.classList.remove(MenuSimplex.CLS_HOVER_ANCESTOR);
 					}
 				}
@@ -281,7 +281,7 @@ export class MenuSimplex {
 			});
 		}
 		window.addEventListener('keydown', (e) => {
-			if (e.key === 'Escape') {
+			if ('Escape' === e.key) {
 				const it = this.#curIts.at(-1);
 				if (it) {
 					const { btn } = it;
