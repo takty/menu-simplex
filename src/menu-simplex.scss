@@ -2,7 +2,7 @@
  * Menu Simplex
  *
  * @author Takuto Yanagida
- * @version 2023-10-04
+ * @version 2023-10-05
  */
 
 .menu-simplex {
@@ -16,15 +16,16 @@
 	--bar-mark-path : polygon(0% 20%, 100% 20%, 50% 95%);
 	--bar-mark-width: 1px;
 
-	--panel-offset      : 2px;
-	--panel-bg-color    : #fff;
-	--panel-shadow      : 0 4px 8px 0 #0004;
-	--panel-max-width   : 24rem;
-	--panel-sub-indent  : 1rem;
+	--panel-offset  : 2px;
+	--panel-bg-color: #fff;
+	--panel-shadow  : 0 4px 8px 0 #0004;
 
 	--panel-item-width  : unset;
 	--panel-item-height : 3rem;
 	--panel-item-padding: 0.25rem 1rem;
+
+	--menu-max-width : 24rem;
+	--menu-sub-indent: 1rem;
 
 	--is-closed-auto     : 'true';   // 'true' or 'false'. Default is 'true'.
 	--is-background-fixed: 'false';  // 'true' or 'false'. Default is 'false'.
@@ -162,7 +163,7 @@
 		flex-direction : column;
 
 		width    : max-content;
-		max-width: var(--panel-max-width);
+		max-width: var(--menu-max-width);
 
 		:where(li > :is(a, button)) {
 			display        : flex;
@@ -181,7 +182,7 @@
 		}
 
 		:where(li ul) {
-			margin-inline-start: var(--panel-sub-indent);
+			margin-inline-start: var(--menu-sub-indent);
 		}
 	}
 
