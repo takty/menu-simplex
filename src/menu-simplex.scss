@@ -143,11 +143,11 @@
 		opacity   : 0;
 		transition: opacity 0.15s 0.05s;
 
-		&:where(:not(.active)) {
+		&:not(.active) {
 			display: none;
 		}
 
-		&:where(.opened) {
+		&.opened {
 			opacity   : 1;
 			transition: opacity 0.2s;
 		}
@@ -198,11 +198,11 @@
 		opacity   : 0;
 		transition: opacity 0.15s 0.05s;
 
-		&:where(:not(.active)) {
+		&:not(.active) {
 			display: none;
 		}
 
-		&:where(.opened) {
+		&.opened {
 			opacity   : 1;
 			transition: opacity 0.2s;
 		}
