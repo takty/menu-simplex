@@ -2,7 +2,7 @@
  * Menu Simplex (Progressively collapsing menu)
  *
  * @author Takuto Yanagida
- * @version 2023-10-05
+ * @version 2023-10-06
  */
 
 export class MenuSimplex {
@@ -369,11 +369,10 @@ export class MenuSimplex {
 				const ul = ('UL' === panel.tagName) ? panel : panel.getElementsByTagName('ul')?.[0];
 				ul?.appendChild(this.#liFocusTrap);
 			}
-		}
-
-		if (MenuSimplex.getStylePropertyBool(this.#divRoot, MenuSimplex.CP_IS_BG_FIXED)) {
-			this.#skipResize = true;
-			MenuSimplex.fixBackground(true);
+			if (MenuSimplex.getStylePropertyBool(this.#divRoot, MenuSimplex.CP_IS_BG_FIXED)) {
+				this.#skipResize = true;
+				MenuSimplex.fixBackground(true);
+			}
 		}
 	}
 
@@ -417,11 +416,10 @@ export class MenuSimplex {
 			if (ul && this.#liFocusTrap.parentElement === ul) {
 				ul.removeChild(this.#liFocusTrap);
 			}
-		}
-
-		if (MenuSimplex.getStylePropertyBool(this.#divRoot, MenuSimplex.CP_IS_BG_FIXED)) {
-			this.#skipResize = true;
-			MenuSimplex.fixBackground(false);
+			if (MenuSimplex.getStylePropertyBool(this.#divRoot, MenuSimplex.CP_IS_BG_FIXED)) {
+				this.#skipResize = true;
+				MenuSimplex.fixBackground(false);
+			}
 		}
 	}
 
