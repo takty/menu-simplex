@@ -2,7 +2,7 @@
  * Menu Simplex
  *
  * @author Takuto Yanagida
- * @version 2023-10-05
+ * @version 2023-10-06
  */
 
 .menu-simplex {
@@ -228,7 +228,7 @@
 			translate: 50% -50%;
 
 			clip-path : var(--bar-mark-path);
-			box-shadow: 0 0 1rem var(--bar-mark-color) inset;
+			box-shadow: 0 0 0 1rem var(--bar-mark-color) inset;
 		}
 
 		&:where(.opened > *) {
@@ -314,7 +314,7 @@
 				translate: 50% -50%;
 
 				clip-path : var(--bar-mark-path);
-				box-shadow: 0 0 1rem var(--bar-mark-color) inset;
+				box-shadow: 0 0 0 1rem var(--bar-mark-color) inset;
 			}
 
 			&:where(.opened > *) {
