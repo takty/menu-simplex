@@ -2,7 +2,7 @@
  * Menu Simplex
  *
  * @author Takuto Yanagida
- * @version 2023-10-06
+ * @version 2023-10-17
  */
 
 .menu-simplex {
@@ -73,9 +73,9 @@
 	:where(button) {
 		appearance   : none;
 		padding      : 0;
+		background   : none;
+		border       : none;
 		border-radius: 0;
-		border       : inherit;
-		background   : inherit;
 		font         : inherit;
 		color        : inherit;
 	}
