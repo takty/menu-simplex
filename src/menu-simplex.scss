@@ -2,7 +2,7 @@
  * Menu Simplex
  *
  * @author Takuto Yanagida
- * @version 2023-10-17
+ * @version 2023-10-19
  */
 
 .menu-simplex {
@@ -93,14 +93,16 @@
 	// -------------------------------------------------------------------------
 
 
-	overflow-y: visible;
-	overflow-x: hidden;
-	opacity   : 0;
+	overflow  : visible;
+	transition: opacity 0.15s;
 
-	&.ready {
-		transition: opacity 0.1s;
-		overflow-x: visible;
-		opacity   : 1;
+	&:not(.ready) {
+		overflow-x: hidden;
+		opacity   : 0;
+
+		> ul {
+			max-height: var(--bar-item-height);
+		}
 	}
 
 
