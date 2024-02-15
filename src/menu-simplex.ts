@@ -248,13 +248,14 @@ export class MenuSimplex {
 		for (const li of lis) {
 			const btn = li.querySelector(':scope > button') as HTMLElement;
 			const panel = li.querySelector(':scope > :is(ul, div)') as HTMLElement;
+			let menu = null;
 			if (panel && !li.classList.contains(MenuSimplex.CLS_MORE)) {
 				panel.classList.add(MenuSimplex.CLS_PANEL, MenuSimplex.CLS_PANEL_POPUP);
 				panel.addEventListener('click', e => this.cancelUnexpectedClose(e));
-				const menu = ('UL' === panel.tagName) ? panel : panel.querySelector(':scope > ul') as HTMLElement;
+				menu = ('UL' === panel.tagName) ? panel : panel.querySelector(':scope > ul') as HTMLElement;
 				menu.classList.add(MenuSimplex.CLS_MENU, MenuSimplex.CLS_MENU_POPUP);
 			}
-			its.push(new Item(li as HTMLElement, btn, panel, 0));
+			its.push(new Item(li as HTMLElement, btn, panel, menu, 0));
 		}
 		return its;
 	}
@@ -476,9 +477,14 @@ export class MenuSimplex {
 		its[this.#moreIdx].li.style.display = inBar[this.#moreIdx] ? '' : 'none';
 		this.setCollapsedState(inBar);
 
+		const changeCls = (e: HTMLElement|null, b: string, a: string) => {
+			e?.classList.remove(b);
+			e?.classList.add(a);
+		};
+
 		let prevElm = this.#ulBar.firstChild as HTMLElement;
 		for (let i = 0; i < its.length; i += 1) {
-			const { li, panel } = its[i];
+			const { li, panel, menu } = its[i];
 			if (inBar[i]) {
 				if (li.parentElement === this.#ulBar) {
 					li.style.flexGrow = '0';
@@ -487,12 +493,12 @@ export class MenuSimplex {
 				}
 				this.#ulBar.insertBefore(li, prevElm.nextElementSibling);
 				prevElm = li;
-				panel?.classList.remove(MenuSimplex.CLS_IN_MORE);
-				panel?.classList.add(MenuSimplex.CLS_IN_BAR);
+				changeCls(panel, MenuSimplex.CLS_IN_MORE, MenuSimplex.CLS_IN_BAR);
+				if (panel !== menu) changeCls(menu, MenuSimplex.CLS_IN_MORE, MenuSimplex.CLS_IN_BAR);
 			} else if(i !== this.#moreIdx) {
 				this.#ulMore.appendChild(li);
-				panel?.classList.remove(MenuSimplex.CLS_IN_BAR);
-				panel?.classList.add(MenuSimplex.CLS_IN_MORE);
+				changeCls(panel, MenuSimplex.CLS_IN_BAR, MenuSimplex.CLS_IN_MORE);
+				if (panel !== menu) changeCls(menu, MenuSimplex.CLS_IN_BAR, MenuSimplex.CLS_IN_MORE);
 			}
 		}
 	}
@@ -582,10 +588,11 @@ export class MenuSimplex {
 
 class Item {
 
-	constructor(public li:HTMLElement, public btn:HTMLElement|null, public panel:HTMLElement|null, public width: number) {
+	constructor(public li:HTMLElement, public btn:HTMLElement|null, public panel:HTMLElement|null, public menu:HTMLElement|null, public width: number) {
 		this.li    = li;
 		this.btn   = btn;
 		this.panel = panel;
+		this.menu  = menu;
 		this.width = width;
 	}
 
