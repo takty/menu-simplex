@@ -2,7 +2,7 @@
  * Menu Simplex (Progressively collapsing menu)
  *
  * @author Takuto Yanagida
- * @version 2023-10-06
+ * @version 2024-02-15
  */
 
 export class MenuSimplex {
@@ -235,6 +235,7 @@ export class MenuSimplex {
 		ul.classList.add(MenuSimplex.CLS_MENU, MenuSimplex.CLS_MENU_MORE);
 		const panel = (ul.parentElement === li) ? ul : (ul.parentElement as HTMLElement);
 		panel.classList.add(MenuSimplex.CLS_PANEL, MenuSimplex.CLS_PANEL_MORE);
+		panel.addEventListener('click', e => this.cancelUnexpectedClose(e));
 		return [ul, idx];
 	}
 
@@ -246,12 +247,25 @@ export class MenuSimplex {
 			const panel = li.querySelector(':scope > :is(ul, div)') as HTMLElement;
 			if (panel && !li.classList.contains(MenuSimplex.CLS_MORE)) {
 				panel.classList.add(MenuSimplex.CLS_PANEL, MenuSimplex.CLS_PANEL_POPUP);
+				panel.addEventListener('click', e => this.cancelUnexpectedClose(e));
 				const menu = ('UL' === panel.tagName) ? panel : panel.querySelector(':scope > ul') as HTMLElement;
 				menu.classList.add(MenuSimplex.CLS_MENU, MenuSimplex.CLS_MENU_POPUP);
 			}
 			its.push(new Item(li as HTMLElement, btn, panel, 0));
 		}
 		return its;
+	}
+
+	private cancelUnexpectedClose(e: MouseEvent) {
+		let f: HTMLElement|null = e.target as HTMLElement;
+		while (f) {
+			if (f.classList.contains('menu')) break;
+			if ('A' === f.tagName) {
+				return;
+			}
+			f = f.parentElement
+		}
+		e.stopPropagation();
 	}
 
 	private initPanel(its: Item[]) {
