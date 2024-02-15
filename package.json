@@ -31,9 +31,10 @@
 		"debug": "tsc --noEmit -w"
 	},
 	"devDependencies": {
-		"esbuild": "^0.19.5",
-		"esbuild-sass-plugin": "^2.16.0",
-		"typescript": "^5.2.2",
-		"vite": "^4.5.0"
+		"esbuild": "^0.20.0",
+		"esbuild-sass-plugin": "^3.0.0",
+		"sass": "^1.70.0",
+		"typescript": "^5.3.3",
+		"vite": "^5.1.2"
 	}
 }
