@@ -2,7 +2,7 @@
  * Menu Simplex
  *
  * @author Takuto Yanagida
- * @version 2024-02-15
+ * @version 2024-02-16
  */
 
 .menu-simplex {
@@ -194,7 +194,7 @@
 
 
 .menu-simplex:where(.with-popup-fade) :where(.panel),
-.menu-simplex:where(.with-popup-wipe) :where(.panel.menu) {
+.menu-simplex:where(.with-popup-wipe) :where(.panel:not(:has(> :only-child))) {
 	opacity   : 0;
 	transition: opacity 0.20s 0.05s;
 
@@ -204,7 +204,7 @@
 	}
 }
 
-.menu-simplex:where(.with-popup-wipe) :where(.panel:not(.menu)) {
+.menu-simplex:where(.with-popup-wipe) :where(.panel:has(> :only-child)) {
 	display           : grid;
 	grid-template-rows: 0fr;
 	width             : max-content;  // For Safari.

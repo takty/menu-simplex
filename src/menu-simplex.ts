@@ -2,7 +2,7 @@
  * Menu Simplex (Progressively collapsing menu)
  *
  * @author Takuto Yanagida
- * @version 2024-02-15
+ * @version 2024-02-16
  */
 
 export class MenuSimplex {
@@ -17,6 +17,8 @@ export class MenuSimplex {
 	static CLS_MENU_POPUP  = 'menu-popup';
 	static CLS_MENU_MORE   = 'menu-more';
 	static CLS_FOCUS_TRAP  = 'focus-trap';
+
+	static CLS_DO_WRAP_PANEL = 'do-wrap-panel';
 
 	static CP_IS_CLOSED_AUTO = '--is-closed-auto';
 	static CP_IS_BG_FIXED    = '--is-background-fixed';
@@ -57,6 +59,20 @@ export class MenuSimplex {
 		};
 	}
 
+	private static wrapElement(tars: HTMLElement[], tn: string) {
+		const p = tars.at(0)?.parentNode;
+		const s = tars.at(-1)?.nextSibling;
+
+		const w = document.createElement(tn);
+		for (const tar of tars) w.appendChild(tar);
+		if (s) {
+			p?.insertBefore(w, s);
+		} else {
+			p?.appendChild(w);
+		}
+		return w;
+	}
+
 	private static addHoverStateEventListener(root: HTMLElement, elms: Element[]) {
 		const enter = (e: PointerEvent) => {
 			const li = (e.target as HTMLElement).parentElement;
@@ -89,6 +105,18 @@ export class MenuSimplex {
 				fec.addEventListener('pointerleave', leave);
 			}
 		}
+	}
+
+	private static cancelUnexpectedClose(e: MouseEvent) {
+		let f: HTMLElement|null = e.target as HTMLElement;
+		while (f) {
+			if (f.classList.contains('menu')) break;
+			if ('A' === f.tagName) {
+				return;
+			}
+			f = f.parentElement
+		}
+		e.stopPropagation();
 	}
 
 	private static fixed: boolean;
@@ -156,7 +184,8 @@ export class MenuSimplex {
 	#scrollY: number = 0;
 	#curIts : Item[] = [];
 
-	#skipResize: boolean = false;
+	#skipResize : boolean = false;
+	#doWrapPanel: boolean = false;
 
 	constructor(id: string|null = null) {
 		const divRoot = id ? document.getElementById(id) : document.getElementsByClassName(MenuSimplex.NS)[0];
@@ -169,9 +198,10 @@ export class MenuSimplex {
 		if (!this.#divRoot.classList.contains(MenuSimplex.NS)) {
 			this.#divRoot.classList.add(MenuSimplex.NS);
 		}
+		this.#doWrapPanel = this.#divRoot.classList.contains(MenuSimplex.CLS_DO_WRAP_PANEL);
 
 		[this.#ulMore, this.#moreIdx] = this.initMore();
-		const its = this.initBarItems();
+		const its = this.initBarItems(this.#ulMore);
 		this.initPanel(its);
 		const order = this.initOrder(its);
 		this.#liFocusTrap = this.initFocusTrap();
@@ -225,51 +255,52 @@ export class MenuSimplex {
 			li.insertBefore(btn, li.firstChild);
 		}
 		const uls = li.querySelectorAll(':scope > ul, :scope > div > ul');
-		let ul = Array.from(uls).find(e => !e.children.length) as HTMLElement;
-		if (!ul) {
-			ul = document.createElement('ul');
-			const div = li.querySelector(':scope > div');
-			if (div) {
-				div.appendChild(ul);
+		let menu = Array.from(uls).find(e => !e.children.length) as HTMLElement;
+		if (!menu) {
+			menu = document.createElement('ul');
+			let d = li.querySelector(':scope > div');
+			if (d) {
+				d.appendChild(menu);
 			} else {
-				li.appendChild(ul);
+				li.appendChild(menu);
 			}
 		}
-		ul.classList.add(MenuSimplex.CLS_MENU, MenuSimplex.CLS_MENU_MORE);
-		const panel = (ul.parentElement === li) ? ul : (ul.parentElement as HTMLElement);
+		let panel = (menu.parentElement === li) ? menu : (menu.parentElement as HTMLElement);
+		if (this.#doWrapPanel && panel === menu) {
+			panel = MenuSimplex.wrapElement(Array.from(li.children).filter(e => e !== btn) as HTMLElement[], 'div');
+		}
 		panel.classList.add(MenuSimplex.CLS_PANEL, MenuSimplex.CLS_PANEL_MORE);
-		panel.addEventListener('click', e => this.cancelUnexpectedClose(e));
-		return [ul, idx];
+		panel.addEventListener('click', e => MenuSimplex.cancelUnexpectedClose(e));
+		menu.classList.add(MenuSimplex.CLS_MENU, MenuSimplex.CLS_MENU_MORE);
+		return [menu, idx];
 	}
 
-	private initBarItems(): Item[] {
+	private initBarItems(menuMore: HTMLElement): Item[] {
 		const its: Item[] = [];
-		const lis = Array.from(this.#ulBar.querySelectorAll(':scope > li'));
-		for (const li of lis) {
+
+		for (const li of this.#ulBar.querySelectorAll(':scope > li')) {
 			const btn = li.querySelector(':scope > button') as HTMLElement;
-			const panel = li.querySelector(':scope > :is(ul, div)') as HTMLElement;
-			let menu = null;
-			if (panel && !li.classList.contains(MenuSimplex.CLS_MORE)) {
-				panel.classList.add(MenuSimplex.CLS_PANEL, MenuSimplex.CLS_PANEL_POPUP);
-				panel.addEventListener('click', e => this.cancelUnexpectedClose(e));
-				menu = ('UL' === panel.tagName) ? panel : panel.querySelector(':scope > ul') as HTMLElement;
-				menu.classList.add(MenuSimplex.CLS_MENU, MenuSimplex.CLS_MENU_POPUP);
+			let menu  = null;
+			let panel = null;
+
+			if (li.classList.contains(MenuSimplex.CLS_MORE)) {
+				menu  = menuMore;
+				panel = (menu.parentElement === li) ? menu : (menu.parentElement as HTMLElement);
+			} else {
+				menu = li.querySelector(':scope > ul, :scope > div > ul') as HTMLElement;
+				if (menu) {
+					panel = (menu.parentElement === li) ? menu : (menu.parentElement as HTMLElement);
+					if (this.#doWrapPanel && panel === menu) {
+						panel = MenuSimplex.wrapElement([menu], 'div');
+					}
+					panel.classList.add(MenuSimplex.CLS_PANEL, MenuSimplex.CLS_PANEL_POPUP);
+					panel.addEventListener('click', e => MenuSimplex.cancelUnexpectedClose(e));
+					menu.classList.add(MenuSimplex.CLS_MENU, MenuSimplex.CLS_MENU_POPUP);
+				}
 			}
 			its.push(new Item(li as HTMLElement, btn, panel, menu, 0));
 		}
 		return its;
-	}
-
-	private cancelUnexpectedClose(e: MouseEvent) {
-		let f: HTMLElement|null = e.target as HTMLElement;
-		while (f) {
-			if (f.classList.contains('menu')) break;
-			if ('A' === f.tagName) {
-				return;
-			}
-			f = f.parentElement
-		}
-		e.stopPropagation();
 	}
 
 	private initPanel(its: Item[]) {
