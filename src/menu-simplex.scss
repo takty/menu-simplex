@@ -133,7 +133,7 @@
 		white-space: nowrap;
 	}
 
-	:where(.menu-bar > li > .panel) {
+	:where(.panel.in-bar) {
 		position          : absolute;
 		inset-inline-start: 0;
 		inset-block-start : calc(100% + var(--panel-offset));
@@ -196,7 +196,7 @@
 	// -------------------------------------------------------------------------
 
 
-	:where(.menu-more > li > .panel) {
+	:where(.panel.in-more) {
 		opacity   : 0;
 		transition: opacity 0.15s 0.05s;
 

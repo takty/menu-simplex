@@ -35,6 +35,9 @@ export class MenuSimplex {
 	static CLS_IS_COLLAPSED     = 'is-collapsed';
 	static CLS_IS_COLLAPSED_ALL = 'is-collapsed-all';
 
+	static CLS_IN_BAR  = 'in-bar';
+	static CLS_IN_MORE = 'in-more';
+
 	static CP_MAX_WIDTH = '--max-width';
 
 
@@ -475,7 +478,7 @@ export class MenuSimplex {
 
 		let prevElm = this.#ulBar.firstChild as HTMLElement;
 		for (let i = 0; i < its.length; i += 1) {
-			const { li } = its[i];
+			const { li, panel } = its[i];
 			if (inBar[i]) {
 				if (li.parentElement === this.#ulBar) {
 					li.style.flexGrow = '0';
@@ -484,8 +487,12 @@ export class MenuSimplex {
 				}
 				this.#ulBar.insertBefore(li, prevElm.nextElementSibling);
 				prevElm = li;
+				panel?.classList.remove(MenuSimplex.CLS_IN_MORE);
+				panel?.classList.add(MenuSimplex.CLS_IN_BAR);
 			} else if(i !== this.#moreIdx) {
 				this.#ulMore.appendChild(li);
+				panel?.classList.remove(MenuSimplex.CLS_IN_BAR);
+				panel?.classList.add(MenuSimplex.CLS_IN_MORE);
 			}
 		}
 	}
