@@ -2,7 +2,7 @@
  * Menu Simplex
  *
  * @author Takuto Yanagida
- * @version 2024-02-16
+ * @version 2024-07-11
  */
 
 .menu-simplex {
@@ -41,6 +41,9 @@
 	box-sizing: border-box;
 
 	max-width: var(--max-width, unset);
+
+	overflow  : visible;
+	transition: opacity 0.15s;
 
 	:where(*, *::before, *::after) {
 		box-sizing: inherit;
@@ -92,9 +95,6 @@
 
 	// -------------------------------------------------------------------------
 
-
-	overflow  : visible;
-	transition: opacity 0.15s;
 
 	&:not(.ready) {
 		overflow-x: hidden;
@@ -262,6 +262,7 @@
 		&:where(.more > *) {
 			padding  : 0;
 			min-width: var(--bar-item-width-more);
+			position : relative;
 
 			&,
 			&::after,
@@ -274,7 +275,6 @@
 				}
 			}
 
-			position: relative;
 			&::after,
 			&::before {
 				content : '';
