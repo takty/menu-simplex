@@ -30,12 +30,12 @@
 		"dev": "vite src/_docs --base ./",
 		"debug": "tsc --noEmit -w"
 	},
-	"packageManager": "yarn@4.13.0",
+	"packageManager": "yarn@4.18.0",
 	"devDependencies": {
-		"esbuild": "^0.28.0",
+		"esbuild": "^0.28.1",
 		"esbuild-sass-plugin": "^3.7.0",
-		"sass": "^1.99.0",
-		"typescript": "^6.0.2",
-		"vite": "^8.0.8"
+		"sass": "^1.102.0",
+		"typescript": "^7.0.2",
+		"vite": "^8.1.5"
 	}
 }
